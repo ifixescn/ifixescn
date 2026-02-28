@@ -91,7 +91,7 @@ class ErrorBoundary extends Component<Props, State> {
                   <p className="font-semibold text-sm text-destructive">
                     错误: {this.state.error.toString()}
                   </p>
-                  {import.meta.env.DEV && this.state.errorInfo && (
+                  {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
                     <details className="text-xs text-muted-foreground">
                       <summary className="cursor-pointer hover:text-foreground">
                         堆栈跟踪

@@ -10,19 +10,9 @@ export function useIsMobile() {
     const onChange = () => {
       setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     };
-    if (typeof mql.addEventListener === "function") {
-      mql.addEventListener("change", onChange);
-    } else {
-      mql.addListener(onChange);
-    }
+    mql.addEventListener("change", onChange);
     setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => {
-      if (typeof mql.removeEventListener === "function") {
-        mql.removeEventListener("change", onChange);
-      } else {
-        mql.removeListener(onChange);
-      }
-    };
+    return () => mql.removeEventListener("change", onChange);
   }, []);
 
   return !!isMobile;
