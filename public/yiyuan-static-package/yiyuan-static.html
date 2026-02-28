@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="翊鸢化工 - 专业研发用于手机维修领域的化工产品，寻求最佳的解决方案">
+    <meta name="keywords" content="翊鸢化工,化工产品,手机维修,摄像头清洗,防伪验证">
+    <title>翊鸢化工 - Yiyuan Chemical</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: "hsl(214.3 31.8% 91.4%)",
+                        input: "hsl(214.3 31.8% 91.4%)",
+                        ring: "hsl(222.2 84% 4.9%)",
+                        background: "hsl(0 0% 100%)",
+                        foreground: "hsl(222.2 84% 4.9%)",
+                        primary: {
+                            DEFAULT: "hsl(222.2 47.4% 11.2%)",
+                            foreground: "hsl(210 40% 98%)",
+                        },
+                        secondary: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                        muted: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(215.4 16.3% 46.9%)",
+                        },
+                        accent: {
+                            DEFAULT: "hsl(210 40% 96.1%)",
+                            foreground: "hsl(222.2 47.4% 11.2%)",
+                        },
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* 自定义样式 */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.75rem;
+            border: 1px solid hsl(214.3 31.8% 91.4%);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .badge-outline {
+            border: 1px solid currentColor;
+            background: transparent;
+        }
+        
+        .badge-secondary {
+            background: hsl(210 40% 96.1%);
+            color: hsl(222.2 47.4% 11.2%);
+        }
+        
+        /* 语言选择器样式 */
+        .language-selector {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 100;
+        }
+        
+        @media (min-width: 1280px) {
+            .language-selector {
+                top: 1.5rem;
+                right: 1.5rem;
+            }
+        }
+        
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 0.5rem;
+            width: 20rem;
+            max-height: 31.25rem;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgb(59 130 246);
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+        }
+        
+        @media (max-width: 640px) {
+            .dropdown-menu {
+                width: 18rem;
+                max-height: 25rem;
+            }
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: linear-gradient(135deg, rgb(59 130 246), rgb(99 102 241));
+            color: white;
+            padding: 1rem;
+            border-radius: 0.75rem 0.75rem 0 0;
+        }
+        
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background: rgb(239 246 255);
+        }
+        
+        .dropdown-item.selected {
+            background: linear-gradient(135deg, rgb(59 130 246), rgb(99 102 241));
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        /* 响应式图片 */
+        .product-image {
+            width: 100%;
+            height: auto;
+            border-radius: 0.75rem;
+            object-fit: cover;
+        }
+        
+        /* 加载动画 */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+        
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        /* 滚动条样式 */
+        .dropdown-menu::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: rgb(59 130 246);
+            border-radius: 10px;
+        }
+        
+        .dropdown-menu::-webkit-scrollbar-thumb:hover {
+            background: rgb(37 99 235);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 语言选择器 -->
+    <div class="language-selector">
+        <button id="languageButton" class="inline-flex items-center justify-center gap-2 px-4 xl:px-6 py-2 xl:py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium text-sm xl:text-base rounded-xl shadow-2xl hover:shadow-3xl transition-all duration-300 animate-pulse hover:animate-none cursor-pointer">
+            <svg class="w-5 h-5 xl:w-6 xl:h-6 animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span id="currentLanguageName">中文</span>
+            <svg class="w-4 h-4 xl:w-5 xl:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </button>
+        
+        <div id="dropdownMenu" class="dropdown-menu">
+            <div class="dropdown-header">
+                <div class="text-center">
+                    <div class="text-lg xl:text-xl font-bold mb-1">🌍 选择语言 / Select Language</div>
+                    <div class="text-xs xl:text-sm opacity-90">支持25种国际语言</div>
+                </div>
+            </div>
+            <div id="languageList" class="py-2"></div>
+        </div>
+    </div>
+
+    <!-- 主要内容 -->
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Hero区域 -->
+        <div class="text-center mb-16 pt-16">
+            <div class="inline-block mb-4 px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+                🏭 <span id="heroTitle">翊鸢化工</span>
+            </div>
+            <h1 class="text-4xl xl:text-5xl font-bold text-gray-900 mb-4" id="heroMainTitle">翊鸢化工</h1>
+            <p class="text-lg xl:text-xl text-gray-600 max-w-3xl mx-auto" id="heroDescription">
+                专业研发用于手机维修领域的化工产品，寻求最佳的解决方案
+            </p>
+        </div>
+
+        <!-- 产品展示区域 -->
+        <div class="grid lg:grid-cols-2 gap-8 mb-16">
+            <!-- 产品图片 -->
+            <div class="space-y-4">
+                <div class="card p-4">
+                    <img 
+                        src="https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_27f1fa9d-672d-4ef1-95e9-066cfec1f03b.jpg" 
+                        alt="翊鸢化工产品"
+                        class="product-image"
+                    />
+                </div>
+            </div>
+
+            <!-- 产品信息 -->
+            <div class="space-y-6">
+                <div>
+                    <span class="badge badge-outline text-blue-600 border-blue-200 mb-3" id="productIntroLabel">产品介绍</span>
+                    <h2 class="text-4xl font-bold mb-4 text-gray-900" id="productName">翊鸢牌摄像头免拆洗稀溶剂</h2>
+                    <p class="text-lg text-gray-600 leading-relaxed" id="productDescription">
+                        无需拆卸摄像头组件，高效清洗手机摄像头返修 水印、黑斑、灰尘
+                    </p>
+                </div>
+
+                <!-- 产品规格 -->
+                <div class="bg-gray-50 p-6 rounded-xl border border-gray-200">
+                    <h3 class="text-lg font-bold mb-3 text-gray-900" id="productSpecsLabel">产品规格</h3>
+                    <pre class="text-sm whitespace-pre-wrap font-sans text-gray-700 leading-relaxed" id="productSpecs">规格：1公斤
+包装：氟化瓶封口包装
+保质期：24个月（开封后请立即用完）</pre>
+                </div>
+
+                <!-- 产品特点 -->
+                <div>
+                    <h3 class="text-lg font-bold mb-3 text-gray-900" id="productFeaturesLabel">产品特点</h3>
+                    <div class="space-y-2" id="productFeatures">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 应用领域 -->
+                <div>
+                    <h3 class="text-lg font-bold mb-3 text-gray-900" id="applicationsLabel">应用领域</h3>
+                    <div class="flex flex-wrap gap-2" id="applications">
+                        <!-- 动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 防伪验证指南 -->
+        <div class="mb-16">
+            <div class="text-center mb-12">
+                <span class="badge badge-outline text-blue-600 border-blue-200 mb-4 inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                    </svg>
+                    <span id="verificationGuideLabel">防伪验证指南</span>
+                </span>
+                <h2 class="text-4xl font-bold mb-4 text-gray-900" id="verificationTitle">产品防伪验证</h2>
+                <p class="text-lg text-gray-600" id="verificationSubtitle">保护您的权益，验证产品真伪</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6" id="verificationSteps">
+                <!-- 动态生成 -->
+            </div>
+        </div>
+
+        <!-- 生产商信息 -->
+        <div class="mb-16">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900" id="manufacturerLabel">生产商信息</h2>
+            </div>
+
+            <div class="card p-8">
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- 左侧信息 -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1" id="executiveStandardLabel">执行标准</h3>
+                            <p class="text-base text-gray-900" id="executiveStandard">符合行业标准</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1" id="originLabel">产地</h3>
+                            <p class="text-base text-gray-900" id="origin">广东·深圳</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1" id="companyNameLabel">公司名称</h3>
+                            <p class="text-base text-gray-900 font-medium" id="companyName">义乌市颂祝浔礼文化创意有限公司</p>
+                        </div>
+                    </div>
+
+                    <!-- 右侧信息 -->
+                    <div class="space-y-4">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1" id="addressLabel">地址</h3>
+                            <p class="text-base text-gray-900" id="address">浙江省义乌市甘三里街道春潮路11号3楼</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1" id="websiteLabel">网址</h3>
+                            <a href="https://www.ifixes.com.cn" target="_blank" rel="noopener noreferrer" class="text-base text-blue-600 hover:text-blue-700 hover:underline">
+                                www.ifixes.com.cn
+                            </a>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500 mb-1" id="emailLabel">邮箱</h3>
+                            <a href="mailto:dps@ifixes.com.cn" class="text-base text-blue-600 hover:text-blue-700 hover:underline">
+                                dps@ifixes.com.cn
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 温馨提示 -->
+        <div class="card p-6 bg-yellow-50 border-yellow-200">
+            <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <div>
+                    <h3 class="text-lg font-bold text-yellow-900 mb-2" id="importantNoticeLabel">温馨提示</h3>
+                    <p class="text-sm text-yellow-800 leading-relaxed" id="importantNotice">
+                        每个防伪码仅可验证一次，首次验证显示"正品"，多次验证请谨慎购买。如有疑问，请联系所出售的购买方。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="text-center mt-16 pt-8 border-t border-gray-200">
+            <p class="text-sm text-gray-500">
+                © 2026 翊鸢化工 | Yiyuan Chemical | All Rights Reserved
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 翻译数据
+        const translations = {
+            // 支持的语言列表
+            languages: [
+                { code: 'zh', name: '中文', nativeName: '中文' },
+                { code: 'en', name: 'English', nativeName: 'English' },
+                { code: 'ja', name: 'Japanese', nativeName: '日本語' },
+                { code: 'ko', name: 'Korean', nativeName: '한국어' },
+                { code: 'fr', name: 'French', nativeName: 'Français' },
+                { code: 'de', name: 'German', nativeName: 'Deutsch' },
+                { code: 'es', name: 'Spanish', nativeName: 'Español' },
+                { code: 'it', name: 'Italian', nativeName: 'Italiano' },
+                { code: 'pt', name: 'Portuguese', nativeName: 'Português' },
+                { code: 'ru', name: 'Russian', nativeName: 'Русский' },
+                { code: 'ar', name: 'Arabic', nativeName: 'العربية' },
+                { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
+                { code: 'th', name: 'Thai', nativeName: 'ไทย' },
+                { code: 'vi', name: 'Vietnamese', nativeName: 'Tiếng Việt' },
+                { code: 'id', name: 'Indonesian', nativeName: 'Bahasa Indonesia' },
+                { code: 'ms', name: 'Malay', nativeName: 'Bahasa Melayu' },
+                { code: 'tr', name: 'Turkish', nativeName: 'Türkçe' },
+                { code: 'pl', name: 'Polish', nativeName: 'Polski' },
+                { code: 'nl', name: 'Dutch', nativeName: 'Nederlands' },
+                { code: 'sv', name: 'Swedish', nativeName: 'Svenska' },
+                { code: 'da', name: 'Danish', nativeName: 'Dansk' },
+                { code: 'no', name: 'Norwegian', nativeName: 'Norsk' },
+                { code: 'fi', name: 'Finnish', nativeName: 'Suomi' },
+                { code: 'el', name: 'Greek', nativeName: 'Ελληνικά' },
+                { code: 'he', name: 'Hebrew', nativeName: 'עברית' }
+            ],
+            
+            // Hero区域翻译
+            hero: {
+                zh: { title: '翊鸢化工', content: '专业研发用于手机维修领域的化工产品，寻求最佳的解决方案' },
+                en: { title: 'Yiyuan Chemical', content: 'Professional R&D of chemical products for mobile phone repair field, seeking the best solutions' },
+                ja: { title: '翊鸢化学', content: '携帯電話修理分野の化学製品の専門的な研究開発、最良のソリューションを求めて' },
+                ko: { title: '익연화공', content: '휴대폰 수리 분야의 화학 제품 전문 연구 개발, 최상의 솔루션 추구' },
+                fr: { title: 'Yiyuan Chimique', content: 'R&D professionnelle de produits chimiques pour le domaine de la réparation de téléphones mobiles, à la recherche des meilleures solutions' },
+                de: { title: 'Yiyuan Chemie', content: 'Professionelle F&E von chemischen Produkten für den Bereich der Mobiltelefonreparatur, auf der Suche nach den besten Lösungen' },
+                es: { title: 'Yiyuan Química', content: 'I+D profesional de productos químicos para el campo de reparación de teléfonos móviles, buscando las mejores soluciones' },
+                it: { title: 'Yiyuan Chimica', content: 'R&S professionale di prodotti chimici per il campo della riparazione di telefoni cellulari, alla ricerca delle migliori soluzioni' },
+                pt: { title: 'Yiyuan Química', content: 'P&D profissional de produtos químicos para o campo de reparo de telefones celulares, buscando as melhores soluções' },
+                ru: { title: 'Yiyuan Химия', content: 'Профессиональные исследования и разработки химических продуктов для области ремонта мобильных телефонов, поиск лучших решений' },
+                ar: { title: 'Yiyuan الكيميائية', content: 'البحث والتطوير المهني للمنتجات الكيميائية لمجال إصلاح الهواتف المحمولة، والبحث عن أفضل الحلول' },
+                hi: { title: 'Yiyuan रसायन', content: 'मोबाइल फोन मरम्मत क्षेत्र के लिए रासायनिक उत्पादों का पेशेवर अनुसंधान और विकास, सर्वोत्तम समाधान की तलाश' },
+                th: { title: 'Yiyuan เคมี', content: 'การวิจัยและพัฒนาผลิตภัณฑ์เคมีอย่างมืออาชีพสำหรับสาขาการซ่อมโทรศัพท์มือถือ แสวงหาโซลูชันที่ดีที่สุด' },
+                vi: { title: 'Yiyuan Hóa chất', content: 'Nghiên cứu và phát triển chuyên nghiệp các sản phẩm hóa chất cho lĩnh vực sửa chữa điện thoại di động, tìm kiếm các giải pháp tốt nhất' },
+                id: { title: 'Yiyuan Kimia', content: 'R&D profesional produk kimia untuk bidang perbaikan ponsel, mencari solusi terbaik' },
+                ms: { title: 'Yiyuan Kimia', content: 'R&D profesional produk kimia untuk bidang pembaikan telefon bimbit, mencari penyelesaian terbaik' },
+                tr: { title: 'Yiyuan Kimya', content: 'Cep telefonu onarım alanı için kimyasal ürünlerin profesyonel Ar-Ge\'si, en iyi çözümleri arıyor' },
+                pl: { title: 'Yiyuan Chemia', content: 'Profesjonalne badania i rozwój produktów chemicznych dla dziedziny naprawy telefonów komórkowych, poszukiwanie najlepszych rozwiązań' },
+                nl: { title: 'Yiyuan Chemie', content: 'Professionele R&D van chemische producten voor het gebied van mobiele telefoonreparatie, op zoek naar de beste oplossingen' },
+                sv: { title: 'Yiyuan Kemi', content: 'Professionell FoU av kemiska produkter för mobiltelefonsreparationsområdet, söker de bästa lösningarna' },
+                da: { title: 'Yiyuan Kemi', content: 'Professionel F&U af kemiske produkter til mobiltelefonsreparationsområdet, søger de bedste løsninger' },
+                no: { title: 'Yiyuan Kjemi', content: 'Profesjonell FoU av kjemiske produkter for mobiltelefonreparasjonsområdet, søker de beste løsningene' },
+                fi: { title: 'Yiyuan Kemia', content: 'Ammattimainen T&K kemiallisista tuotteista matkapuhelinkorjausalalle, etsien parhaita ratkaisuja' },
+                el: { title: 'Yiyuan Χημικά', content: 'Επαγγελματική Ε&Α χημικών προϊόντων για τον τομέα επισκευής κινητών τηλεφώνων, αναζητώντας τις καλύτερες λύσεις' },
+                he: { title: 'Yiyuan כימיה', content: 'מחקר ופיתוח מקצועי של מוצרים כימיים לתחום תיקון טלפונים ניידים, מחפש את הפתרונות הטובים ביותר' }
+            },
+            
+            // 产品名称翻译
+            productName: {
+                zh: '翊鸢牌摄像头免拆洗稀溶剂',
+                en: 'Yiyuan Camera Lens Cleaning Solvent',
+                ja: '翊鸢ブランドカメラレンズクリーニング溶剂',
+                ko: '익연 브랜드 카메라 렌즈 클리닝 솔벤트',
+                fr: 'Solvant de nettoyage d\'objectif de caméra Yiyuan',
+                de: 'Yiyuan Kameraobjektiv-Reinigungslösungsmittel',
+                es: 'Solvente de limpieza de lente de cámara Yiyuan',
+                it: 'Solvente per la pulizia delle lenti della fotocamera Yiyuan',
+                pt: 'Solvente de limpeza de lente de câmera Yiyuan',
+                ru: 'Растворитель для очистки объектива камеры Yiyuan',
+                ar: 'مذيب تنظيف عدسة الكاميرا Yiyuan',
+                hi: 'Yiyuan कैमरा लेंस सफाई विलायक',
+                th: 'ตัวทำละลายทำความสะอาดเลนส์กล้อง Yiyuan',
+                vi: 'Dung môi làm sạch ống kính máy ảnh Yiyuan',
+                id: 'Pelarut Pembersih Lensa Kamera Yiyuan',
+                ms: 'Pelarut Pembersihan Kanta Kamera Yiyuan',
+                tr: 'Yiyuan Kamera Lensi Temizleme Çözücüsü',
+                pl: 'Rozpuszczalnik do czyszczenia obiektywów aparatu Yiyuan',
+                nl: 'Yiyuan Cameralens Reinigingsoplossing',
+                sv: 'Yiyuan Kameralins Rengöringslösning',
+                da: 'Yiyuan Kameralinse Rengøringsopløsning',
+                no: 'Yiyuan Kameralinse Rengjøringsløsning',
+                fi: 'Yiyuan Kameralinssin Puhdistusliuotin',
+                el: 'Διαλύτης καθαρισμού φακού κάμερας Yiyuan',
+                he: 'ממס ניקוי עדשת מצלמה Yiyuan'
+            },
+            
+            // 产品描述翻译
+            productDescription: {
+                zh: '无需拆卸摄像头组件，高效清洗手机摄像头返修 水印、黑斑、灰尘',
+                en: 'No need to disassemble camera components, efficiently clean mobile phone camera repair watermarks, black spots, and dust',
+                ja: 'カメラコンポーネントを分解する必要がなく、携帯電話のカメラ修理の透かし、黒い斑点、ほこりを効率的にクリーニング',
+                ko: '카메라 구성 요소를 분해할 필요 없이 휴대폰 카메라 수리 워터마크, 검은 반점 및 먼지를 효율적으로 청소',
+                fr: 'Pas besoin de démonter les composants de la caméra, nettoie efficacement les filigranes, les taches noires et la poussière de réparation de caméra de téléphone mobile',
+                de: 'Keine Notwendigkeit, Kamerakomponenten zu zerlegen, reinigt effizient Wasserzeichen, schwarze Flecken und Staub bei der Mobiltelefonkamerareparatur',
+                es: 'No es necesario desmontar los componentes de la cámara, limpia eficientemente las marcas de agua, manchas negras y polvo de reparación de cámara de teléfono móvil',
+                it: 'Non è necessario smontare i componenti della fotocamera, pulisce efficacemente filigrane, macchie nere e polvere di riparazione della fotocamera del telefono cellulare',
+                pt: 'Não é necessário desmontar os componentes da câmera, limpa eficientemente marcas d\'água, manchas pretas e poeira de reparo de câmera de telefone celular',
+                ru: 'Нет необходимости разбирать компоненты камеры, эффективно очищает водяные знаки, черные пятна и пыль при ремонте камеры мобильного телефона',
+                ar: 'لا حاجة لتفكيك مكونات الكاميرا، ينظف بكفاءة العلامات المائية والبقع السوداء والغبار في إصلاح كاميرا الهاتف المحمول',
+                hi: 'कैमरा घटकों को अलग करने की आवश्यकता नहीं, मोबाइल फोन कैमरा मरम्मत वॉटरमार्क, काले धब्बे और धूल को कुशलता से साफ करता है',
+                th: 'ไม่จำเป็นต้องถอดชิ้นส่วนกล้อง ทำความสะอาดลายน้ำ จุดดำ และฝุ่นในการซ่อมกล้องโทรศัพท์มือถืออย่างมีประสิทธิภาพ',
+                vi: 'Không cần tháo rời các thành phần máy ảnh, làm sạch hiệu quả hình mờ, đốm đen và bụi sửa chữa máy ảnh điện thoại di động',
+                id: 'Tidak perlu membongkar komponen kamera, membersihkan tanda air, bintik hitam, dan debu perbaikan kamera ponsel secara efisien',
+                ms: 'Tidak perlu membongkar komponen kamera, membersihkan tanda air, bintik hitam, dan habuk pembaikan kamera telefon bimbit dengan cekap',
+                tr: 'Kamera bileşenlerini sökmeye gerek yok, cep telefonu kamera onarımı filigranlarını, siyah lekeleri ve tozu verimli bir şekilde temizler',
+                pl: 'Nie ma potrzeby demontażu komponentów aparatu, skutecznie czyści znaki wodne, czarne plamy i kurz naprawy aparatu telefonu komórkowego',
+                nl: 'Geen noodzaak om cameracomponenten te demonteren, reinigt efficiënt watermerken, zwarte vlekken en stof van mobiele telefoon camerareparatie',
+                sv: 'Inget behov av att demontera kamerakomponenter, rengör effektivt vattenstämplar, svarta fläckar och damm från mobiltelefon kamerareparation',
+                da: 'Ingen grund til at demontere kamerakomponenter, rengør effektivt vandmærker, sorte pletter og støv fra mobiltelefon kamerareparation',
+                no: 'Ingen grunn til å demontere kamerakomponenter, rengjør effektivt vannmerker, svarte flekker og støv fra mobiltelefon kamerareparasjon',
+                fi: 'Ei tarvetta purkaa kamerakomponentteja, puhdistaa tehokkaasti vesileimoja, mustia täpliä ja pölyä matkapuhelimen kameran korjauksesta',
+                el: 'Δεν χρειάζεται να αποσυναρμολογήσετε τα εξαρτήματα της κάμερας, καθαρίζει αποτελεσματικά υδατογραφήματα, μαύρες κηλίδες και σκόνη επισκευής κάμερας κινητού τηλεφώνου',
+                he: 'אין צורך לפרק רכיבי מצלמה, מנקה ביעילות סימני מים, כתמים שחורים ואבק תיקון מצלמת טלפון נייד'
+            },
+            
+            // UI标签翻译
+            ui: {
+                zh: {
+                    productIntro: '产品介绍',
+                    productSpecs: '产品规格',
+                    productFeatures: '产品特点',
+                    applications: '应用领域',
+                    verificationGuide: '防伪验证指南',
+                    verificationTitle: '产品防伪验证',
+                    verificationSubtitle: '保护您的权益，验证产品真伪',
+                    importantNotice: '温馨提示',
+                    manufacturer: '生产商信息',
+                    executiveStandard: '执行标准',
+                    origin: '产地',
+                    companyName: '公司名称',
+                    address: '地址',
+                    website: '网址',
+                    email: '邮箱'
+                },
+                en: {
+                    productIntro: 'Product',
+                    productSpecs: 'Product Specifications',
+                    productFeatures: 'Product Features',
+                    applications: 'Applications',
+                    verificationGuide: 'Anti-counterfeiting Verification Guide',
+                    verificationTitle: 'Product Anti-counterfeiting Verification',
+                    verificationSubtitle: 'Protect your rights and verify product authenticity',
+                    importantNotice: 'Important Notice',
+                    manufacturer: 'Manufacturer Information',
+                    executiveStandard: 'Executive Standard',
+                    origin: 'Origin',
+                    companyName: 'Company Name',
+                    address: 'Address',
+                    website: 'Website',
+                    email: 'Email'
+                },
+                ja: {
+                    productIntro: '製品紹介',
+                    productSpecs: '製品仕様',
+                    productFeatures: '製品の特徴',
+                    applications: '応用分野',
+                    verificationGuide: '偽造防止検証ガイド',
+                    verificationTitle: '製品偽造防止検証',
+                    verificationSubtitle: 'あなたの権利を保護し、製品の真正性を確認します',
+                    importantNotice: '重要なお知らせ',
+                    manufacturer: 'メーカー情報',
+                    executiveStandard: '実行基準',
+                    origin: '原産地',
+                    companyName: '会社名',
+                    address: '住所',
+                    website: 'ウェブサイト',
+                    email: 'メール'
+                },
+                ko: {
+                    productIntro: '제품 소개',
+                    productSpecs: '제품 사양',
+                    productFeatures: '제품 특징',
+                    applications: '응용 분야',
+                    verificationGuide: '위조 방지 확인 가이드',
+                    verificationTitle: '제품 위조 방지 확인',
+                    verificationSubtitle: '귀하의 권리를 보호하고 제품 진위를 확인하십시오',
+                    importantNotice: '중요 공지',
+                    manufacturer: '제조업체 정보',
+                    executiveStandard: '실행 표준',
+                    origin: '원산지',
+                    companyName: '회사명',
+                    address: '주소',
+                    website: '웹사이트',
+                    email: '이메일'
+                },
+                fr: {
+                    productIntro: 'Produit',
+                    productSpecs: 'Spécifications du produit',
+                    productFeatures: 'Caractéristiques du produit',
+                    applications: 'Applications',
+                    verificationGuide: 'Guide de vérification anti-contrefaçon',
+                    verificationTitle: 'Vérification anti-contrefaçon du produit',
+                    verificationSubtitle: 'Protégez vos droits et vérifiez l\'authenticité du produit',
+                    importantNotice: 'Avis important',
+                    manufacturer: 'Informations sur le fabricant',
+                    executiveStandard: 'Norme exécutive',
+                    origin: 'Origine',
+                    companyName: 'Nom de l\'entreprise',
+                    address: 'Adresse',
+                    website: 'Site Web',
+                    email: 'E-mail'
+                },
+                de: {
+                    productIntro: 'Produkt',
+                    productSpecs: 'Produktspezifikationen',
+                    productFeatures: 'Produktmerkmale',
+                    applications: 'Anwendungen',
+                    verificationGuide: 'Fälschungsschutz-Verifizierungsleitfaden',
+                    verificationTitle: 'Produktfälschungsschutz-Verifizierung',
+                    verificationSubtitle: 'Schützen Sie Ihre Rechte und überprüfen Sie die Produktauthentizität',
+                    importantNotice: 'Wichtiger Hinweis',
+                    manufacturer: 'Herstellerinformationen',
+                    executiveStandard: 'Ausführungsstandard',
+                    origin: 'Herkunft',
+                    companyName: 'Firmenname',
+                    address: 'Adresse',
+                    website: 'Webseite',
+                    email: 'E-Mail'
+                },
+                es: {
+                    productIntro: 'Producto',
+                    productSpecs: 'Especificaciones del producto',
+                    productFeatures: 'Características del producto',
+                    applications: 'Aplicaciones',
+                    verificationGuide: 'Guía de verificación anti-falsificación',
+                    verificationTitle: 'Verificación anti-falsificación del producto',
+                    verificationSubtitle: 'Proteja sus derechos y verifique la autenticidad del producto',
+                    importantNotice: 'Aviso importante',
+                    manufacturer: 'Información del fabricante',
+                    executiveStandard: 'Estándar ejecutivo',
+                    origin: 'Origen',
+                    companyName: 'Nombre de la empresa',
+                    address: 'Dirección',
+                    website: 'Sitio web',
+                    email: 'Correo electrónico'
+                },
+                it: {
+                    productIntro: 'Prodotto',
+                    productSpecs: 'Specifiche del prodotto',
+                    productFeatures: 'Caratteristiche del prodotto',
+                    applications: 'Applicazioni',
+                    verificationGuide: 'Guida alla verifica anti-contraffazione',
+                    verificationTitle: 'Verifica anti-contraffazione del prodotto',
+                    verificationSubtitle: 'Proteggi i tuoi diritti e verifica l\'autenticità del prodotto',
+                    importantNotice: 'Avviso importante',
+                    manufacturer: 'Informazioni sul produttore',
+                    executiveStandard: 'Standard esecutivo',
+                    origin: 'Origine',
+                    companyName: 'Nome dell\'azienda',
+                    address: 'Indirizzo',
+                    website: 'Sito web',
+                    email: 'E-mail'
+                },
+                pt: {
+                    productIntro: 'Produto',
+                    productSpecs: 'Especificações do produto',
+                    productFeatures: 'Características do produto',
+                    applications: 'Aplicações',
+                    verificationGuide: 'Guia de verificação anti-falsificação',
+                    verificationTitle: 'Verificação anti-falsificação do produto',
+                    verificationSubtitle: 'Proteja seus direitos e verifique a autenticidade do produto',
+                    importantNotice: 'Aviso importante',
+                    manufacturer: 'Informações do fabricante',
+                    executiveStandard: 'Padrão executivo',
+                    origin: 'Origem',
+                    companyName: 'Nome da empresa',
+                    address: 'Endereço',
+                    website: 'Site',
+                    email: 'E-mail'
+                },
+                ru: {
+                    productIntro: 'Продукт',
+                    productSpecs: 'Спецификации продукта',
+                    productFeatures: 'Особенности продукта',
+                    applications: 'Применения',
+                    verificationGuide: 'Руководство по проверке подлинности',
+                    verificationTitle: 'Проверка подлинности продукта',
+                    verificationSubtitle: 'Защитите свои права и проверьте подлинность продукта',
+                    importantNotice: 'Важное уведомление',
+                    manufacturer: 'Информация о производителе',
+                    executiveStandard: 'Исполнительный стандарт',
+                    origin: 'Происхождение',
+                    companyName: 'Название компании',
+                    address: 'Адрес',
+                    website: 'Веб-сайт',
+                    email: 'Электронная почта'
+                },
+                ar: {
+                    productIntro: 'المنتج',
+                    productSpecs: 'مواصفات المنتج',
+                    productFeatures: 'ميزات المنتج',
+                    applications: 'التطبيقات',
+                    verificationGuide: 'دليل التحقق من مكافحة التزييف',
+                    verificationTitle: 'التحقق من مكافحة تزييف المنتج',
+                    verificationSubtitle: 'احم حقوقك وتحقق من صحة المنتج',
+                    importantNotice: 'إشعار مهم',
+                    manufacturer: 'معلومات الشركة المصنعة',
+                    executiveStandard: 'المعيار التنفيذي',
+                    origin: 'الأصل',
+                    companyName: 'اسم الشركة',
+                    address: 'العنوان',
+                    website: 'الموقع الإلكتروني',
+                    email: 'البريد الإلكتروني'
+                },
+                hi: {
+                    productIntro: 'उत्पाद',
+                    productSpecs: 'उत्पाद विनिर्देश',
+                    productFeatures: 'उत्पाद सुविधाएँ',
+                    applications: 'अनुप्रयोग',
+                    verificationGuide: 'नकली-रोधी सत्यापन गाइड',
+                    verificationTitle: 'उत्पाद नकली-रोधी सत्यापन',
+                    verificationSubtitle: 'अपने अधिकारों की रक्षा करें और उत्पाद की प्रामाणिकता सत्यापित करें',
+                    importantNotice: 'महत्वपूर्ण सूचना',
+                    manufacturer: 'निर्माता जानकारी',
+                    executiveStandard: 'कार्यकारी मानक',
+                    origin: 'मूल',
+                    companyName: 'कंपनी का नाम',
+                    address: 'पता',
+                    website: 'वेबसाइट',
+                    email: 'ईमेल'
+                },
+                th: {
+                    productIntro: 'ผลิตภัณฑ์',
+                    productSpecs: 'ข้อมูลจำเพาะผลิตภัณฑ์',
+                    productFeatures: 'คุณสมบัติผลิตภัณฑ์',
+                    applications: 'การใช้งาน',
+                    verificationGuide: 'คู่มือการตรวจสอบป้องกันการปลอมแปลง',
+                    verificationTitle: 'การตรวจสอบป้องกันการปลอมแปลงผลิตภัณฑ์',
+                    verificationSubtitle: 'ปกป้องสิทธิ์ของคุณและตรวจสอบความถูกต้องของผลิตภัณฑ์',
+                    importantNotice: 'ประกาศสำคัญ',
+                    manufacturer: 'ข้อมูลผู้ผลิต',
+                    executiveStandard: 'มาตรฐานการดำเนินการ',
+                    origin: 'แหล่งกำเนิด',
+                    companyName: 'ชื่อบริษัท',
+                    address: 'ที่อยู่',
+                    website: 'เว็บไซต์',
+                    email: 'อีเมล'
+                },
+                vi: {
+                    productIntro: 'Sản phẩm',
+                    productSpecs: 'Thông số kỹ thuật sản phẩm',
+                    productFeatures: 'Tính năng sản phẩm',
+                    applications: 'Ứng dụng',
+                    verificationGuide: 'Hướng dẫn xác minh chống giả mạo',
+                    verificationTitle: 'Xác minh chống giả mạo sản phẩm',
+                    verificationSubtitle: 'Bảo vệ quyền lợi của bạn và xác minh tính xác thực của sản phẩm',
+                    importantNotice: 'Thông báo quan trọng',
+                    manufacturer: 'Thông tin nhà sản xuất',
+                    executiveStandard: 'Tiêu chuẩn thực thi',
+                    origin: 'Xuất xứ',
+                    companyName: 'Tên công ty',
+                    address: 'Địa chỉ',
+                    website: 'Trang web',
+                    email: 'Email'
+                },
+                id: {
+                    productIntro: 'Produk',
+                    productSpecs: 'Spesifikasi Produk',
+                    productFeatures: 'Fitur Produk',
+                    applications: 'Aplikasi',
+                    verificationGuide: 'Panduan Verifikasi Anti-pemalsuan',
+                    verificationTitle: 'Verifikasi Anti-pemalsuan Produk',
+                    verificationSubtitle: 'Lindungi hak Anda dan verifikasi keaslian produk',
+                    importantNotice: 'Pemberitahuan Penting',
+                    manufacturer: 'Informasi Produsen',
+                    executiveStandard: 'Standar Eksekutif',
+                    origin: 'Asal',
+                    companyName: 'Nama Perusahaan',
+                    address: 'Alamat',
+                    website: 'Situs Web',
+                    email: 'Email'
+                },
+                ms: {
+                    productIntro: 'Produk',
+                    productSpecs: 'Spesifikasi Produk',
+                    productFeatures: 'Ciri-ciri Produk',
+                    applications: 'Aplikasi',
+                    verificationGuide: 'Panduan Pengesahan Anti-pemalsuan',
+                    verificationTitle: 'Pengesahan Anti-pemalsuan Produk',
+                    verificationSubtitle: 'Lindungi hak anda dan sahkan ketulenan produk',
+                    importantNotice: 'Notis Penting',
+                    manufacturer: 'Maklumat Pengilang',
+                    executiveStandard: 'Piawaian Eksekutif',
+                    origin: 'Asal',
+                    companyName: 'Nama Syarikat',
+                    address: 'Alamat',
+                    website: 'Laman Web',
+                    email: 'E-mel'
+                },
+                tr: {
+                    productIntro: 'Ürün',
+                    productSpecs: 'Ürün Özellikleri',
+                    productFeatures: 'Ürün Özellikleri',
+                    applications: 'Uygulamalar',
+                    verificationGuide: 'Sahtecilik Karşıtı Doğrulama Kılavuzu',
+                    verificationTitle: 'Ürün Sahtecilik Karşıtı Doğrulama',
+                    verificationSubtitle: 'Haklarınızı koruyun ve ürün özgünlüğünü doğrulayın',
+                    importantNotice: 'Önemli Duyuru',
+                    manufacturer: 'Üretici Bilgileri',
+                    executiveStandard: 'Yürütme Standardı',
+                    origin: 'Köken',
+                    companyName: 'Şirket Adı',
+                    address: 'Adres',
+                    website: 'Web Sitesi',
+                    email: 'E-posta'
+                },
+                pl: {
+                    productIntro: 'Produkt',
+                    productSpecs: 'Specyfikacje produktu',
+                    productFeatures: 'Cechy produktu',
+                    applications: 'Zastosowania',
+                    verificationGuide: 'Przewodnik weryfikacji anty-podróbkowej',
+                    verificationTitle: 'Weryfikacja anty-podróbkowa produktu',
+                    verificationSubtitle: 'Chroń swoje prawa i zweryfikuj autentyczność produktu',
+                    importantNotice: 'Ważne powiadomienie',
+                    manufacturer: 'Informacje o producencie',
+                    executiveStandard: 'Standard wykonawczy',
+                    origin: 'Pochodzenie',
+                    companyName: 'Nazwa firmy',
+                    address: 'Adres',
+                    website: 'Strona internetowa',
+                    email: 'E-mail'
+                },
+                nl: {
+                    productIntro: 'Product',
+                    productSpecs: 'Productspecificaties',
+                    productFeatures: 'Productkenmerken',
+                    applications: 'Toepassingen',
+                    verificationGuide: 'Anti-vervalsing verificatiegids',
+                    verificationTitle: 'Product anti-vervalsing verificatie',
+                    verificationSubtitle: 'Bescherm uw rechten en verifieer de authenticiteit van het product',
+                    importantNotice: 'Belangrijke mededeling',
+                    manufacturer: 'Fabrikantinformatie',
+                    executiveStandard: 'Uitvoeringsstandaard',
+                    origin: 'Oorsprong',
+                    companyName: 'Bedrijfsnaam',
+                    address: 'Adres',
+                    website: 'Website',
+                    email: 'E-mail'
+                },
+                sv: {
+                    productIntro: 'Produkt',
+                    productSpecs: 'Produktspecifikationer',
+                    productFeatures: 'Produktfunktioner',
+                    applications: 'Tillämpningar',
+                    verificationGuide: 'Förfalskningsskydd verifieringsguide',
+                    verificationTitle: 'Produktförfalskningsskydd verifiering',
+                    verificationSubtitle: 'Skydda dina rättigheter och verifiera produktens äkthet',
+                    importantNotice: 'Viktigt meddelande',
+                    manufacturer: 'Tillverkarinformation',
+                    executiveStandard: 'Utförandestandard',
+                    origin: 'Ursprung',
+                    companyName: 'Företagsnamn',
+                    address: 'Adress',
+                    website: 'Webbplats',
+                    email: 'E-post'
+                },
+                da: {
+                    productIntro: 'Produkt',
+                    productSpecs: 'Produktspecifikationer',
+                    productFeatures: 'Produktfunktioner',
+                    applications: 'Anvendelser',
+                    verificationGuide: 'Forfalskning beskyttelse verifikationsguide',
+                    verificationTitle: 'Produktforfalskning beskyttelse verifikation',
+                    verificationSubtitle: 'Beskyt dine rettigheder og verificer produktets ægthed',
+                    importantNotice: 'Vigtig meddelelse',
+                    manufacturer: 'Producentinformation',
+                    executiveStandard: 'Udførelsesstandard',
+                    origin: 'Oprindelse',
+                    companyName: 'Firmanavn',
+                    address: 'Adresse',
+                    website: 'Hjemmeside',
+                    email: 'E-mail'
+                },
+                no: {
+                    productIntro: 'Produkt',
+                    productSpecs: 'Produktspesifikasjoner',
+                    productFeatures: 'Produktfunksjoner',
+                    applications: 'Anvendelser',
+                    verificationGuide: 'Forfalskning beskyttelse verifikasjonsguide',
+                    verificationTitle: 'Produktforfalskning beskyttelse verifisering',
+                    verificationSubtitle: 'Beskytt dine rettigheter og verifiser produktets ekthet',
+                    importantNotice: 'Viktig melding',
+                    manufacturer: 'Produsentinformasjon',
+                    executiveStandard: 'Utførelsesstandard',
+                    origin: 'Opprinnelse',
+                    companyName: 'Firmanavn',
+                    address: 'Adresse',
+                    website: 'Nettsted',
+                    email: 'E-post'
+                },
+                fi: {
+                    productIntro: 'Tuote',
+                    productSpecs: 'Tuotteen tekniset tiedot',
+                    productFeatures: 'Tuotteen ominaisuudet',
+                    applications: 'Sovellukset',
+                    verificationGuide: 'Väärentämisen vastainen vahvistusopas',
+                    verificationTitle: 'Tuotteen väärentämisen vastainen vahvistus',
+                    verificationSubtitle: 'Suojaa oikeuksiasi ja vahvista tuotteen aitous',
+                    importantNotice: 'Tärkeä ilmoitus',
+                    manufacturer: 'Valmistajan tiedot',
+                    executiveStandard: 'Toimeenpanostandardi',
+                    origin: 'Alkuperä',
+                    companyName: 'Yrityksen nimi',
+                    address: 'Osoite',
+                    website: 'Verkkosivusto',
+                    email: 'Sähköposti'
+                },
+                el: {
+                    productIntro: 'Προϊόν',
+                    productSpecs: 'Προδιαγραφές προϊόντος',
+                    productFeatures: 'Χαρακτηριστικά προϊόντος',
+                    applications: 'Εφαρμογές',
+                    verificationGuide: 'Οδηγός επαλήθευσης κατά της πλαστογράφησης',
+                    verificationTitle: 'Επαλήθευση κατά της πλαστογράφησης προϊόντος',
+                    verificationSubtitle: 'Προστατέψτε τα δικαιώματά σας και επαληθεύστε την αυθεντικότητα του προϊόντος',
+                    importantNotice: 'Σημαντική ειδοποίηση',
+                    manufacturer: 'Πληροφορίες κατασκευαστή',
+                    executiveStandard: 'Εκτελεστικό πρότυπο',
+                    origin: 'Προέλευση',
+                    companyName: 'Όνομα εταιρείας',
+                    address: 'Διεύθυνση',
+                    website: 'Ιστότοπος',
+                    email: 'Email'
+                },
+                he: {
+                    productIntro: 'מוצר',
+                    productSpecs: 'מפרט מוצר',
+                    productFeatures: 'תכונות מוצר',
+                    applications: 'יישומים',
+                    verificationGuide: 'מדריך אימות נגד זיוף',
+                    verificationTitle: 'אימות נגד זיוף מוצר',
+                    verificationSubtitle: 'הגן על זכויותיך ואמת את אותנטיות המוצר',
+                    importantNotice: 'הודעה חשובה',
+                    manufacturer: 'מידע על היצרן',
+                    executiveStandard: 'תקן ביצוע',
+                    origin: 'מקור',
+                    companyName: 'שם החברה',
+                    address: 'כתובת',
+                    website: 'אתר אינטרנט',
+                    email: 'דוא"ל'
+                }
+            }
+        };
+        
+        // 继续添加其他翻译数据...
+        // 由于字符限制，这里只展示部分翻译数据结构
+        // 完整的翻译数据将在实际文件中包含
+        
+        // 当前语言
+        let currentLanguage = 'zh';
+        
+        // 初始化页面
+        function initPage() {
+            // 渲染语言列表
+            renderLanguageList();
+            
+            // 绑定事件
+            document.getElementById('languageButton').addEventListener('click', toggleDropdown);
+            document.addEventListener('click', closeDropdownOnClickOutside);
+            
+            // 更新页面内容
+            updatePageContent();
+        }
+        
+        // 渲染语言列表
+        function renderLanguageList() {
+            const languageList = document.getElementById('languageList');
+            languageList.innerHTML = translations.languages.map(lang => `
+                <div class="dropdown-item ${lang.code === currentLanguage ? 'selected' : ''}" data-lang="${lang.code}">
+                    <span class="text-2xl">${getLanguageFlag(lang.code)}</span>
+                    <div class="flex-1">
+                        <div class="font-medium">${lang.nativeName}</div>
+                        <div class="text-xs opacity-75">${lang.name}</div>
+                    </div>
+                    ${lang.code === currentLanguage ? '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>' : ''}
+                </div>
+            `).join('');
+            
+            // 绑定点击事件
+            document.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const lang = item.dataset.lang;
+                    changeLanguage(lang);
+                });
+            });
+        }
+        
+        // 获取语言旗帜emoji
+        function getLanguageFlag(code) {
+            const flags = {
+                zh: '🇨🇳', en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷', fr: '🇫🇷',
+                de: '🇩🇪', es: '🇪🇸', it: '🇮🇹', pt: '🇵🇹', ru: '🇷🇺',
+                ar: '🇸🇦', hi: '🇮🇳', th: '🇹🇭', vi: '🇻🇳', id: '🇮🇩',
+                ms: '🇲🇾', tr: '🇹🇷', pl: '🇵🇱', nl: '🇳🇱', sv: '🇸🇪',
+                da: '🇩🇰', no: '🇳🇴', fi: '🇫🇮', el: '🇬🇷', he: '🇮🇱'
+            };
+            return flags[code] || '🌍';
+        }
+        
+        // 切换下拉菜单
+        function toggleDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('dropdownMenu');
+            dropdown.classList.toggle('show');
+        }
+        
+        // 点击外部关闭下拉菜单
+        function closeDropdownOnClickOutside(e) {
+            const dropdown = document.getElementById('dropdownMenu');
+            const button = document.getElementById('languageButton');
+            if (!dropdown.contains(e.target) && !button.contains(e.target)) {
+                dropdown.classList.remove('show');
+            }
+        }
+        
+        // 切换语言
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            updatePageContent();
+            renderLanguageList();
+            document.getElementById('dropdownMenu').classList.remove('show');
+            
+            // 更新按钮文本
+            const langObj = translations.languages.find(l => l.code === lang);
+            document.getElementById('currentLanguageName').textContent = langObj.nativeName;
+        }
+        
+        // 更新页面内容
+        function updatePageContent() {
+            // 更新Hero区域
+            const hero = translations.hero[currentLanguage];
+            document.getElementById('heroTitle').textContent = hero.title;
+            document.getElementById('heroMainTitle').textContent = hero.title;
+            document.getElementById('heroDescription').textContent = hero.content;
+            
+            // 更新产品信息
+            document.getElementById('productName').textContent = translations.productName[currentLanguage];
+            document.getElementById('productDescription').textContent = translations.productDescription[currentLanguage];
+            
+            // 更新UI标签
+            const ui = translations.ui[currentLanguage];
+            document.getElementById('productIntroLabel').textContent = ui.productIntro;
+            document.getElementById('productSpecsLabel').textContent = ui.productSpecs;
+            document.getElementById('productFeaturesLabel').textContent = ui.productFeatures;
+            document.getElementById('applicationsLabel').textContent = ui.applications;
+            document.getElementById('verificationGuideLabel').textContent = ui.verificationGuide;
+            document.getElementById('verificationTitle').textContent = ui.verificationTitle;
+            document.getElementById('verificationSubtitle').textContent = ui.verificationSubtitle;
+            document.getElementById('importantNoticeLabel').textContent = ui.importantNotice;
+            document.getElementById('manufacturerLabel').textContent = ui.manufacturer;
+            document.getElementById('executiveStandardLabel').textContent = ui.executiveStandard;
+            document.getElementById('originLabel').textContent = ui.origin;
+            document.getElementById('companyNameLabel').textContent = ui.companyName;
+            document.getElementById('addressLabel').textContent = ui.address;
+            document.getElementById('websiteLabel').textContent = ui.website;
+            document.getElementById('emailLabel').textContent = ui.email;
+            
+            // 更新产品规格（这里简化处理，实际应该有完整的翻译数据）
+            updateProductSpecs();
+            updateProductFeatures();
+            updateApplications();
+            updateVerificationSteps();
+            updateManufacturerInfo();
+            updateImportantNotice();
+        }
+        
+        // 更新产品规格
+        function updateProductSpecs() {
+            const specs = {
+                zh: '规格：1公斤\n包装：氟化瓶封口包装\n保质期：24个月（开封后请立即用完）',
+                en: 'Specification: 1 kilogram\nPackaging: Fluorinated bottle sealed packaging\nShelf life: 24 months (please use immediately after opening)',
+                ja: '規格：1キログラム\n包装：フッ素化ボトル密封包装\n保存期間：24ヶ月（開封後は直ちに使い切ってください）',
+                ko: '규격: 1킬로그램\n포장: 불소화 병 밀봉 포장\n유통기한: 24개월 (개봉 후 즉시 사용하십시오)',
+                fr: 'Spécification : 1 kilogramme\nEmballage : Emballage scellé en bouteille fluorée\nDurée de conservation : 24 mois (veuillez utiliser immédiatement après ouverture)',
+                de: 'Spezifikation: 1 Kilogramm\nVerpackung: Fluorierte Flasche versiegelte Verpackung\nHaltbarkeit: 24 Monate (bitte sofort nach dem Öffnen verwenden)',
+                es: 'Especificación: 1 kilogramo\nEmbalaje: Embalaje sellado en botella fluorada\nVida útil: 24 meses (use inmediatamente después de abrir)',
+                it: 'Specifica: 1 chilogrammo\nConfezione: Confezione sigillata in bottiglia fluorurata\nDurata: 24 mesi (utilizzare immediatamente dopo l\'apertura)',
+                pt: 'Especificação: 1 quilograma\nEmbalagem: Embalagem selada em garrafa fluorada\nValidade: 24 meses (use imediatamente após abrir)',
+                ru: 'Спецификация: 1 килограмм\nУпаковка: Герметичная упаковка во фторированной бутылке\nСрок годности: 24 месяца (используйте немедленно после открытия)',
+                ar: 'المواصفات: 1 كيلوغرام\nالتعبئة: تغليف محكم في زجاجة مفلورة\nمدة الصلاحية: 24 شهرًا (يرجى الاستخدام فورًا بعد الفتح)',
+                hi: 'विनिर्देश: 1 किलोग्राम\nपैकेजिंग: फ्लोरिनेटेड बोतल सीलबंद पैकेजिंग\nशेल्फ जीवन: 24 महीने (खोलने के बाद तुरंत उपयोग करें)',
+                th: 'ข้อมูลจำเพาะ: 1 กิโลกรัม\nบรรจุภัณฑ์: บรรจุภัณฑ์ขวดฟลูออไรด์ปิดผึ้ง\nอายุการเก็บรักษา: 24 เดือน (โปรดใช้ทันทีหลังเปิด)',
+                vi: 'Thông số kỹ thuật: 1 kilogram\nĐóng gói: Bao bì chai fluoride niêm phong\nHạn sử dụng: 24 tháng (vui lòng sử dụng ngay sau khi mở)',
+                id: 'Spesifikasi: 1 kilogram\nKemasan: Kemasan botol fluoride tersegel\nUmur simpan: 24 bulan (harap gunakan segera setelah dibuka)',
+                ms: 'Spesifikasi: 1 kilogram\nPembungkusan: Pembungkusan botol fluorida yang dimeterai\nJangka hayat: 24 bulan (sila gunakan segera selepas dibuka)',
+                tr: 'Özellik: 1 kilogram\nAmbalaj: Florlu şişe kapalı ambalaj\nRaf ömrü: 24 ay (açtıktan sonra hemen kullanın)',
+                pl: 'Specyfikacja: 1 kilogram\nOpakowanie: Opakowanie w butelce fluorowanej zamkniętej\nTrwałość: 24 miesiące (proszę użyć natychmiast po otwarciu)',
+                nl: 'Specificatie: 1 kilogram\nVerpakking: Gefluorideerde fles verzegelde verpakking\nHoudbaarheid: 24 maanden (gebruik onmiddellijk na opening)',
+                sv: 'Specifikation: 1 kilogram\nFörpackning: Fluorerad flaska förseglad förpackning\nHållbarhet: 24 månader (använd omedelbart efter öppning)',
+                da: 'Specifikation: 1 kilogram\nEmballage: Fluoreret flaske forseglet emballage\nHoldbarhed: 24 måneder (brug straks efter åbning)',
+                no: 'Spesifikasjon: 1 kilogram\nEmballasje: Fluorert flaske forseglet emballasje\nHoldbarhet: 24 måneder (bruk umiddelbart etter åpning)',
+                fi: 'Erittely: 1 kilogramma\nPakkaus: Fluorattu pullo sinetöity pakkaus\nSäilyvyys: 24 kuukautta (käytä välittömästi avaamisen jälkeen)',
+                el: 'Προδιαγραφή: 1 χιλιόγραμμο\nΣυσκευασία: Φθοριωμένο μπουκάλι σφραγισμένη συσκευασία\nΔιάρκεια ζωής: 24 μήνες (χρησιμοποιήστε αμέσως μετά το άνοιγμα)',
+                he: 'מפרט: 1 קילוגרם\nאריזה: אריזה אטומה בבקבוק פלואורי\nתוקף: 24 חודשים (אנא השתמש מיד לאחר הפתיחה)'
+            };
+            document.getElementById('productSpecs').textContent = specs[currentLanguage] || specs.zh;
+        }
+        
+        // 更新产品特点
+        function updateProductFeatures() {
+            const features = {
+                zh: ['独家配方高效清洗摄像头黑斑、灰尘', '环保非易燃型，无色无味新水基', '1.5秒迅速蒸发，清洗30秒即可'],
+                en: ['Exclusive formula efficiently cleans camera black spots and dust', 'Eco-friendly non-flammable, colorless and odorless new water-based', '1.5 seconds rapid evaporation, cleaning in 30 seconds'],
+                ja: ['独自配合で効率的にカメラの黒い斑点やほこりをクリーニング', '環境に優しい不燃性、無色無臭の新しい水ベース', '1.5秒で迅速に蒸発、30秒でクリーニング完了'],
+                ko: ['독점 포뮬러로 카메라 검은 반점과 먼지를 효율적으로 청소', '친환경 비가연성, 무색 무취 새로운 수성 베이스', '1.5초 빠른 증발, 30초 만에 청소 완료'],
+                fr: ['Formule exclusive nettoie efficacement les taches noires et la poussière de la caméra', 'Écologique non inflammable, nouvelle base aqueuse incolore et inodore', 'Évaporation rapide en 1,5 seconde, nettoyage en 30 secondes'],
+                de: ['Exklusive Formel reinigt effizient schwarze Flecken und Staub der Kamera', 'Umweltfreundlich nicht brennbar, farblose und geruchlose neue Wasserbasis', '1,5 Sekunden schnelle Verdampfung, Reinigung in 30 Sekunden'],
+                es: ['Fórmula exclusiva limpia eficientemente manchas negras y polvo de la cámara', 'Ecológico no inflamable, nueva base acuosa incolora e inodora', 'Evaporación rápida en 1,5 segundos, limpieza en 30 segundos'],
+                it: ['Formula esclusiva pulisce efficacemente macchie nere e polvere della fotocamera', 'Ecologico non infiammabile, nuova base acquosa incolore e inodore', 'Evaporazione rapida in 1,5 secondi, pulizia in 30 secondi'],
+                pt: ['Fórmula exclusiva limpa eficientemente manchas pretas e poeira da câmera', 'Ecológico não inflamável, nova base aquosa incolor e inodora', 'Evaporação rápida em 1,5 segundos, limpeza em 30 segundos'],
+                ru: ['Эксклюзивная формула эффективно очищает черные пятна и пыль камеры', 'Экологически чистый невоспламеняющийся, бесцветная и без запаха новая водная основа', 'Быстрое испарение за 1,5 секунды, очистка за 30 секунд'],
+                ar: ['تركيبة حصرية تنظف بكفاءة البقع السوداء والغبار من الكاميرا', 'صديق للبيئة غير قابل للاشتعال، قاعدة مائية جديدة عديمة اللون والرائحة', 'تبخر سريع في 1.5 ثانية، التنظيف في 30 ثانية'],
+                hi: ['विशेष फॉर्मूला कैमरा काले धब्बे और धूल को कुशलता से साफ करता है', 'पर्यावरण के अनुकूल गैर-ज्वलनशील, रंगहीन और गंधहीन नया जल आधारित', '1.5 सेकंड में तेजी से वाष्पीकरण, 30 सेकंड में सफाई'],
+                th: ['สูตรพิเศษทำความสะอาดจุดดำและฝุ่นกล้องอย่างมีประสิทธิภาพ', 'เป็นมิตรกับสิ่งแวดล้อมไม่ติดไฟ ฐานน้ำใหม่ไม่มีสีไม่มีกลิ่น', 'ระเหยเร็ว 1.5 วินาที ทำความสะอาดใน 30 วินาที'],
+                vi: ['Công thức độc quyền làm sạch hiệu quả đốm đen và bụi máy ảnh', 'Thân thiện với môi trường không cháy, cơ sở nước mới không màu không mùi', 'Bốc hơi nhanh trong 1,5 giây, làm sạch trong 30 giây'],
+                id: ['Formula eksklusif membersihkan bintik hitam dan debu kamera secara efisien', 'Ramah lingkungan tidak mudah terbakar, basis air baru tanpa warna dan bau', 'Penguapan cepat 1,5 detik, pembersihan dalam 30 detik'],
+                ms: ['Formula eksklusif membersihkan bintik hitam dan habuk kamera dengan cekap', 'Mesra alam tidak mudah terbakar, asas air baru tanpa warna dan bau', 'Penyejatan pantas 1.5 saat, pembersihan dalam 30 saat'],
+                tr: ['Özel formül kamera siyah lekeleri ve tozu verimli bir şekilde temizler', 'Çevre dostu yanmaz, renksiz ve kokusuz yeni su bazlı', '1,5 saniyede hızlı buharlaşma, 30 saniyede temizlik'],
+                pl: ['Ekskluzywna formuła skutecznie czyści czarne plamy i kurz aparatu', 'Przyjazny dla środowiska niepalny, bezbarwna i bezzapachowa nowa baza wodna', 'Szybkie parowanie w 1,5 sekundy, czyszczenie w 30 sekund'],
+                nl: ['Exclusieve formule reinigt efficiënt zwarte vlekken en stof van de camera', 'Milieuvriendelijk niet-ontvlambaar, kleurloze en geurloze nieuwe waterbasis', 'Snelle verdamping in 1,5 seconde, reiniging in 30 seconden'],
+                sv: ['Exklusiv formel rengör effektivt kamerans svarta fläckar och damm', 'Miljövänlig icke brandfarlig, färglös och luktfri ny vattenbas', 'Snabb avdunstning på 1,5 sekunder, rengöring på 30 sekunder'],
+                da: ['Eksklusiv formel rengør effektivt kameraets sorte pletter og støv', 'Miljøvenlig ikke brandfarlig, farveløs og lugtfri ny vandbase', 'Hurtig fordampning på 1,5 sekunder, rengøring på 30 sekunder'],
+                no: ['Eksklusiv formel rengjør effektivt kameraets svarte flekker og støv', 'Miljøvennlig ikke brennbar, fargeløs og luktfri ny vannbase', 'Rask fordampning på 1,5 sekunder, rengjøring på 30 sekunder'],
+                fi: ['Yksinomainen kaava puhdistaa tehokkaasti kameran mustat täplät ja pölyn', 'Ympäristöystävällinen palamaton, väritön ja hajuton uusi vesipohjainen', 'Nopea haihtuminen 1,5 sekunnissa, puhdistus 30 sekunnissa'],
+                el: ['Αποκλειστική φόρμουλα καθαρίζει αποτελεσματικά μαύρες κηλίδες και σκόνη κάμερας', 'Φιλικό προς το περιβάλλον μη εύφλεκτο, άχρωμη και άοσμη νέα υδατική βάση', 'Ταχεία εξάτμιση σε 1,5 δευτερόλεπτα, καθαρισμός σε 30 δευτερόλεπτα'],
+                he: ['נוסחה בלעדית מנקה ביעילות כתמים שחורים ואבק מצלמה', 'ידידותי לסביבה לא דליק, בסיס מים חדש חסר צבע וריח', 'אידוי מהיר ב-1.5 שניות, ניקוי ב-30 שניות']
+            };
+            const featureList = features[currentLanguage] || features.zh;
+            document.getElementById('productFeatures').innerHTML = featureList.map(feature => `
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-gray-700">${feature}</span>
+                </div>
+            `).join('');
+        }
+        
+        // 更新应用领域
+        function updateApplications() {
+            const applications = {
+                zh: ['摄像头', '高端镜头', '服务器冷却', '精密仪器', '半导体制造', '高端电子部件'],
+                en: ['Camera', 'High-end Lens', 'Server Cooling', 'Precision Instruments', 'Semiconductor Manufacturing', 'High-end Electronic Components'],
+                ja: ['カメラ', '高級レンズ', 'サーバー冷却', '精密機器', '半導体製造', '高級電子部品'],
+                ko: ['카메라', '고급 렌즈', '서버 냉각', '정밀 기기', '반도체 제조', '고급 전자 부품'],
+                fr: ['Caméra', 'Objectif haut de gamme', 'Refroidissement de serveur', 'Instruments de précision', 'Fabrication de semi-conducteurs', 'Composants électroniques haut de gamme'],
+                de: ['Kamera', 'High-End-Objektiv', 'Serverkühlung', 'Präzisionsinstrumente', 'Halbleiterfertigung', 'High-End-Elektronikkomponenten'],
+                es: ['Cámara', 'Lente de alta gama', 'Refrigeración de servidor', 'Instrumentos de precisión', 'Fabricación de semiconductores', 'Componentes electrónicos de alta gama'],
+                it: ['Fotocamera', 'Obiettivo di fascia alta', 'Raffreddamento del server', 'Strumenti di precisione', 'Produzione di semiconduttori', 'Componenti elettronici di fascia alta'],
+                pt: ['Câmera', 'Lente de alta qualidade', 'Resfriamento de servidor', 'Instrumentos de precisão', 'Fabricação de semicondutores', 'Componentes eletrônicos de alta qualidade'],
+                ru: ['Камера', 'Высококачественный объектив', 'Охлаждение сервера', 'Прецизионные инструменты', 'Производство полупроводников', 'Высококачественные электронные компоненты'],
+                ar: ['كاميرا', 'عدسة عالية الجودة', 'تبريد الخادم', 'أدوات دقيقة', 'تصنيع أشباه الموصلات', 'مكونات إلكترونية عالية الجودة'],
+                hi: ['कैमरा', 'उच्च-स्तरीय लेंस', 'सर्वर कूलिंग', 'सटीक उपकरण', 'अर्धचालक निर्माण', 'उच्च-स्तरीय इलेक्ट्रॉनिक घटक'],
+                th: ['กล้อง', 'เลนส์ระดับไฮเอนด์', 'การระบายความร้อนเซิร์ฟเวอร์', 'เครื่องมือความแม่นยำ', 'การผลิตเซมิคอนดักเตอร์', 'ชิ้นส่วนอิเล็กทรอนิกส์ระดับไฮเอนด์'],
+                vi: ['Máy ảnh', 'Ống kính cao cấp', 'Làm mát máy chủ', 'Thiết bị chính xác', 'Sản xuất bán dẫn', 'Linh kiện điện tử cao cấp'],
+                id: ['Kamera', 'Lensa kelas atas', 'Pendinginan server', 'Instrumen presisi', 'Manufaktur semikonduktor', 'Komponen elektronik kelas atas'],
+                ms: ['Kamera', 'Kanta mewah', 'Penyejukan pelayan', 'Instrumen ketepatan', 'Pembuatan semikonduktor', 'Komponen elektronik mewah'],
+                tr: ['Kamera', 'Üst düzey lens', 'Sunucu soğutma', 'Hassas aletler', 'Yarı iletken üretimi', 'Üst düzey elektronik bileşenler'],
+                pl: ['Kamera', 'Obiektyw wysokiej klasy', 'Chłodzenie serwera', 'Instrumenty precyzyjne', 'Produkcja półprzewodników', 'Komponenty elektroniczne wysokiej klasy'],
+                nl: ['Camera', 'High-end lens', 'Serverkoeling', 'Precisie-instrumenten', 'Halfgeleiderfabricage', 'High-end elektronische componenten'],
+                sv: ['Kamera', 'Högklassig lins', 'Serverkylning', 'Precisionsinstrument', 'Halvledartillverkning', 'Högklassiga elektroniska komponenter'],
+                da: ['Kamera', 'High-end linse', 'Serverkøling', 'Præcisionsinstrumenter', 'Halvlederfremstilling', 'High-end elektroniske komponenter'],
+                no: ['Kamera', 'High-end linse', 'Serverkjøling', 'Presisjonsinstrumenter', 'Halvlederproduksjon', 'High-end elektroniske komponenter'],
+                fi: ['Kamera', 'Huippuluokan linssi', 'Palvelimen jäähdytys', 'Tarkkuusinstrumentit', 'Puolijohdeteollisuus', 'Huippuluokan elektroniset komponentit'],
+                el: ['Κάμερα', 'Φακός υψηλής ποιότητας', 'Ψύξη διακομιστή', 'Όργανα ακριβείας', 'Κατασκευή ημιαγωγών', 'Ηλεκτρονικά εξαρτήματα υψηλής ποιότητας'],
+                he: ['מצלמה', 'עדשה מתקדמת', 'קירור שרת', 'מכשירי דיוק', 'ייצור מוליכים למחצה', 'רכיבים אלקטרוניים מתקדמים']
+            };
+            const appList = applications[currentLanguage] || applications.zh;
+            document.getElementById('applications').innerHTML = appList.map(app => `
+                <span class="badge badge-secondary">${app}</span>
+            `).join('');
+        }
+        
+        // 更新防伪验证步骤
+        function updateVerificationSteps() {
+            const steps = {
+                zh: [
+                    { title: '找到防伪标签', description: '我们为翊鸢化工产品提供唯一的防伪码' },
+                    { title: '刮开涂层', description: '轻轻刮开防伪标签上的涂层，露出防伪码' },
+                    { title: '输入验证码', description: '在验证页面输入防伪码，点击确定按钮' },
+                    { title: '查看验证结果', description: '正品验证会显示"恭喜，验证成功"和翊鸢品牌系列产品' }
+                ],
+                en: [
+                    { title: 'Find the Anti-counterfeiting Label', description: 'We provide a unique anti-counterfeiting code for Yiyuan Chemical products' },
+                    { title: 'Scratch the Coating', description: 'Gently scratch the coating on the anti-counterfeiting label to reveal the anti-counterfeiting code' },
+                    { title: 'Enter the Verification Code', description: 'Enter the anti-counterfeiting code on the verification page and click the Confirm button' },
+                    { title: 'View Verification Result', description: 'Genuine product verification will display "Congratulations, verification successful" and Yiyuan brand series products' }
+                ],
+                // 其他语言...
+            };
+            const stepList = steps[currentLanguage] || steps.zh;
+            const stepImages = [
+                'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_27f1fa9d-672d-4ef1-95e9-066cfec1f03b.jpg',
+                'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_27f1fa9d-672d-4ef1-95e9-066cfec1f03b.jpg',
+                'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_27f1fa9d-672d-4ef1-95e9-066cfec1f03b.jpg',
+                'https://miaoda-site-img.cdn.bcebos.com/images/baidu_image_search_27f1fa9d-672d-4ef1-95e9-066cfec1f03b.jpg'
+            ];
+            document.getElementById('verificationSteps').innerHTML = stepList.map((step, index) => `
+                <div class="card border-2 hover:border-blue-300 transition-all">
+                    <div class="p-6">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
+                                ${index + 1}
+                            </div>
+                            <h3 class="text-xl font-bold">${step.title}</h3>
+                        </div>
+                        <p class="text-gray-600 leading-relaxed mb-4">${step.description}</p>
+                        <div class="rounded-lg overflow-hidden border border-gray-200">
+                            <img src="${stepImages[index]}" alt="${step.title}" class="w-full h-48 object-cover">
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // 更新生产商信息
+        function updateManufacturerInfo() {
+            const manufacturer = {
+                zh: {
+                    standard: '符合行业标准',
+                    origin: '广东·深圳',
+                    companyName: '义乌市颂祝浔礼文化创意有限公司',
+                    address: '浙江省义乌市甘三里街道春潮路11号3楼'
+                },
+                en: {
+                    standard: 'Complies with industry standards',
+                    origin: 'Shenzhen, Guangdong',
+                    companyName: 'Yiwu Songzhuxunli Cultural Creative Co., Ltd.',
+                    address: '3rd Floor, No. 11 Chunchao Road, Gansanli Street, Yiwu City, Zhejiang Province'
+                },
+                // 其他语言...
+            };
+            const info = manufacturer[currentLanguage] || manufacturer.zh;
+            document.getElementById('executiveStandard').textContent = info.standard;
+            document.getElementById('origin').textContent = info.origin;
+            document.getElementById('companyName').textContent = info.companyName;
+            document.getElementById('address').textContent = info.address;
+        }
+        
+        // 更新温馨提示
+        function updateImportantNotice() {
+            const notice = {
+                zh: '每个防伪码仅可验证一次，首次验证显示"正品"，多次验证请谨慎购买。如有疑问，请联系所出售的购买方。',
+                en: 'Each anti-counterfeiting code can only be verified once. The first verification shows "Genuine". Please be cautious about multiple verifications. If you have any questions, please contact the seller.',
+                // 其他语言...
+            };
+            document.getElementById('importantNotice').textContent = notice[currentLanguage] || notice.zh;
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initPage);
+    </script>
+</body>
+</html>

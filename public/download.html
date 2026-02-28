@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>翊鸢化工静态页面 - 下载中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s;
+        }
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen py-12 px-4">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-bold text-gray-900 mb-4">
+                    🎉 翊鸢化工静态页面
+                </h1>
+                <p class="text-xl text-gray-600">
+                    HTML静态版本 - 支持25种国际语言
+                </p>
+                <div class="mt-4 inline-block px-6 py-2 bg-green-100 text-green-700 rounded-full font-medium">
+                    ✅ 生产就绪 | v1.0.0
+                </div>
+            </div>
+
+            <!-- 功能特性 -->
+            <div class="grid md:grid-cols-3 gap-6 mb-12">
+                <div class="card p-6 text-center">
+                    <div class="text-4xl mb-3">🌍</div>
+                    <h3 class="text-lg font-bold mb-2">25种语言</h3>
+                    <p class="text-gray-600 text-sm">支持全球主要语言，实时切换</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <div class="text-4xl mb-3">📱</div>
+                    <h3 class="text-lg font-bold mb-2">响应式设计</h3>
+                    <p class="text-gray-600 text-sm">完美适配手机、平板、电脑</p>
+                </div>
+                <div class="card p-6 text-center">
+                    <div class="text-4xl mb-3">⚡</div>
+                    <h3 class="text-lg font-bold mb-2">快速加载</h3>
+                    <p class="text-gray-600 text-sm">单文件，无依赖，秒开</p>
+                </div>
+            </div>
+
+            <!-- 下载选项 -->
+            <div class="space-y-6">
+                <!-- 完整压缩包 -->
+                <div class="card p-8">
+                    <div class="flex items-start gap-6">
+                        <div class="text-6xl">📦</div>
+                        <div class="flex-1">
+                            <h2 class="text-2xl font-bold mb-2">完整压缩包（推荐）</h2>
+                            <p class="text-gray-600 mb-4">
+                                包含HTML文件、使用说明和README文档，适合直接分享给用户
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">yiyuan-static.html</span>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">README.md</span>
+                                <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">使用说明.txt</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <a href="yiyuan-static-package.zip" download class="download-btn text-white px-8 py-3 rounded-lg font-medium inline-flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                    </svg>
+                                    下载压缩包
+                                </a>
+                                <span class="text-gray-500 text-sm">约 23KB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 单个HTML文件 -->
+                <div class="card p-8">
+                    <div class="flex items-start gap-6">
+                        <div class="text-6xl">📄</div>
+                        <div class="flex-1">
+                            <h2 class="text-2xl font-bold mb-2">单个HTML文件</h2>
+                            <p class="text-gray-600 mb-4">
+                                只需要HTML文件，双击即可在浏览器中打开使用
+                            </p>
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">无需构建</span>
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">无需服务器</span>
+                                <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">即开即用</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <a href="yiyuan-static.html" download class="download-btn text-white px-8 py-3 rounded-lg font-medium inline-flex items-center gap-2">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                    </svg>
+                                    下载HTML文件
+                                </a>
+                                <span class="text-gray-500 text-sm">约 80KB</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 在线预览 -->
+                <div class="card p-8">
+                    <div class="flex items-start gap-6">
+                        <div class="text-6xl">👁️</div>
+                        <div class="flex-1">
+                            <h2 class="text-2xl font-bold mb-2">在线预览</h2>
+                            <p class="text-gray-600 mb-4">
+                                在下载前先预览页面效果，体验所有功能
+                            </p>
+                            <a href="yiyuan-static.html" target="_blank" class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                </svg>
+                                打开预览
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 使用说明 -->
+            <div class="mt-12 card p-8">
+                <h2 class="text-2xl font-bold mb-6">📖 快速开始</h2>
+                <div class="space-y-4">
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
+                        <div>
+                            <h3 class="font-bold mb-1">下载文件</h3>
+                            <p class="text-gray-600">选择上面的下载选项，下载压缩包或HTML文件</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">2</div>
+                        <div>
+                            <h3 class="font-bold mb-1">解压文件（如果下载的是压缩包）</h3>
+                            <p class="text-gray-600">解压 yiyuan-static-package.zip 到任意目录</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">3</div>
+                        <div>
+                            <h3 class="font-bold mb-1">打开HTML文件</h3>
+                            <p class="text-gray-600">双击 yiyuan-static.html 文件，使用浏览器打开</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">4</div>
+                        <div>
+                            <h3 class="font-bold mb-1">开始使用</h3>
+                            <p class="text-gray-600">点击右上角的语言选择器切换语言，浏览产品信息</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 技术支持 -->
+            <div class="mt-12 text-center">
+                <h3 class="text-lg font-bold mb-4">需要帮助？</h3>
+                <div class="flex justify-center gap-6">
+                    <a href="mailto:dps@ifixes.com.cn" class="text-blue-600 hover:text-blue-700 inline-flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                        </svg>
+                        dps@ifixes.com.cn
+                    </a>
+                    <a href="https://www.ifixes.com.cn" target="_blank" class="text-blue-600 hover:text-blue-700 inline-flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                        </svg>
+                        www.ifixes.com.cn
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-12 pt-8 border-t border-gray-200 text-center text-gray-500 text-sm">
+                <p>© 2026 翊鸢化工 | Yiyuan Chemical | All Rights Reserved</p>
+                <p class="mt-2">版本 v1.0.0 | 更新日期：2025-11-09</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

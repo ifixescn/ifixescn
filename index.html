@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
+    <meta name="description" content="iFixes is a leading repair tools manufacturer & repair service solution provider in China. Our company commit ourselves to optimize work methods of technicians who engaged in mobile phone repair service industry around the world" />
+    <meta name="keywords" content="iFixes, repair tool, cell phone repair tool, mobile phone repair, repair service, repair solution" />
+    
+    <!-- 百度站点验证 -->
+    <meta name="baidu-site-verification" content="codeva-kvSnNraqXT" />
+    
+    <!-- 移动端APP WebView兼容性增强 -->
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="x5-orientation" content="portrait" />
+    <meta name="x5-fullscreen" content="true" />
+    <meta name="x5-page-mode" content="app" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    
+    <title>iFixes - Leading Repair Tools Manufacturer</title>
+    
+    <!-- Enhanced loading styles with fade animation -->
+    <style>
+      #initial-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #ffffff;
+        z-index: 9999;
+        opacity: 1;
+      }
+      
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f3f4f6;
+        border-top-color: #3b82f6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      
+      .loading-text {
+        margin-top: 16px;
+        font-size: 14px;
+        color: #6b7280;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- WeChat environment detection and guidance prompt -->
+    <div id="wechat-guide" style="display: none;">
+      <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+      ">
+        <div style="
+          background: white;
+          border-radius: 16px;
+          padding: 32px 24px;
+          max-width: 400px;
+          width: 100%;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+          text-align: center;
+        ">
+          <div style="
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 32px;
+          ">
+            ⚠️
+          </div>
+          
+          <h2 style="
+            font-size: 22px;
+            font-weight: 600;
+            color: #1a202c;
+            margin: 0 0 12px 0;
+          ">
+            Please Open in Browser
+          </h2>
+          
+          <p style="
+            font-size: 15px;
+            color: #4a5568;
+            line-height: 1.6;
+            margin: 0 0 24px 0;
+          ">
+            For the best experience, please tap the <strong style="color: #667eea;">···</strong> menu in the top right corner and select <strong style="color: #667eea;">"Open in Browser"</strong>
+          </p>
+          
+          <div style="
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            text-align: left;
+          ">
+            <div style="font-size: 13px; color: #718096; margin-bottom: 8px;">
+              <strong style="color: #2d3748;">Steps:</strong>
+            </div>
+            <div style="font-size: 13px; color: #4a5568; line-height: 1.8;">
+              1️⃣ Tap the <strong>···</strong> button in the top right<br>
+              2️⃣ Select <strong>Open in Browser</strong><br>
+              3️⃣ Choose your default browser
+            </div>
+          </div>
+          
+          <button onclick="location.reload()" style="
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+          " onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+            Got it, Refresh
+          </button>
+          
+          <div style="
+            margin-top: 16px;
+            font-size: 12px;
+            color: #a0aec0;
+          ">
+            If already in browser, please ignore this message
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Initial loading indicator with text -->
+    <div id="initial-loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading...</div>
+    </div>
+    
+    <div id="root"></div>
+    
+    <!-- 增强的WebView环境检测和兼容性处理 - 修复版 -->
+    <script>
+      (function() {
+        console.log('[App Detection] Starting detection at:', new Date().toISOString());
+        
+        // 检测各种APP内嵌浏览器环境
+        var ua = navigator.userAgent.toLowerCase();
+        var isWeChat = ua.indexOf('micromessenger') !== -1;
+        var isQQ = ua.indexOf('qq/') !== -1;
+        var isWeibo = ua.indexOf('weibo') !== -1;
+        var isDingTalk = ua.indexOf('dingtalk') !== -1;
+        var isAlipay = ua.indexOf('alipayclient') !== -1;
+        var isBaidu = ua.indexOf('baiduboxapp') !== -1;
+        var isUC = ua.indexOf('ucbrowser') !== -1;
+        var isInApp = isWeChat || isQQ || isWeibo || isDingTalk || isAlipay || isBaidu || isUC;
+        
+        console.log('[App Detection] User Agent:', navigator.userAgent);
+        console.log('[App Detection] Is WeChat:', isWeChat);
+        console.log('[App Detection] Is QQ:', isQQ);
+        console.log('[App Detection] Is Weibo:', isWeibo);
+        console.log('[App Detection] Is DingTalk:', isDingTalk);
+        console.log('[App Detection] Is Alipay:', isAlipay);
+        console.log('[App Detection] Is Baidu:', isBaidu);
+        console.log('[App Detection] Is UC:', isUC);
+        console.log('[App Detection] Is In App:', isInApp);
+        
+        // 立即移除引导页面，不再使用这个功能
+        // 原因：检测逻辑容易误判，导致在APP中无法正常访问
+        var guide = document.getElementById('wechat-guide');
+        if (guide) {
+          guide.style.display = 'none';
+          guide.remove();
+          console.log('[App Detection] Guide page removed - allowing normal access');
+        }
+        
+        // 不再设置检测定时器，让页面正常加载
+        console.log('[App Detection] Normal loading mode - no interference');
+      })();
+    </script>
+    
+    <!-- 加载超时保护：如果3秒后loading仍在显示，自动隐藏 -->
+    <script>
+      setTimeout(function() {
+        var loading = document.getElementById('initial-loading');
+        if (loading && loading.style.display !== 'none') {
+          console.log('[Loading Fallback] Auto-hiding loading after 3 seconds');
+          loading.style.opacity = '0';
+          loading.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(function() {
+            loading.style.display = 'none';
+          }, 300);
+        }
+      }, 3000); // 增加到3秒
+    </script>
+    
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+# Netlify redirects for SPA
+# All routes should fallback to index.html for React Router to handle
+
+# Serve static files directly
+/favicon.png /favicon.png 200
+/robots.txt /robots.txt 200
+/sitemap.xml /sitemap.xml 200
+/images/* /images/:splat 200
+/assets/* /assets/:splat 200
+
+# WeChat verification files
+/MP_verify_*.txt /MP_verify_:splat.txt 200
+/*.txt /:splat.txt 200
+
+# API requests (if any)
+/api/* /api/:splat 200
+
+# All other routes fallback to index.html for SPA
+/* /index.html 200

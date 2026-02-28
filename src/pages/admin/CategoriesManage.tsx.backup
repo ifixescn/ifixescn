@@ -1,0 +1,244 @@
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { getCategories, createCategory, updateCategory, deleteCategory } from "@/db/api";
+import type { Category } from "@/types";
+import { Pencil, Trash2, Plus, FolderOpen } from "lucide-react";
+
+export default function CategoriesManage() {
+  const [articleCategories, setArticleCategories] = useState<Category[]>([]);
+  const [productCategories, setProductCategories] = useState<Category[]>([]);
+  const [questionCategories, setQuestionCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [currentType, setCurrentType] = useState<"article" | "product" | "question">("article");
+  const { toast } = useToast();
+
+  const loadData = async () => {
+    try {
+      const [articles, products, questions] = await Promise.all([
+        getCategories("article"),
+        getCategories("product"),
+        getCategories("question")
+      ]);
+      setArticleCategories(articles);
+      setProductCategories(products);
+      setQuestionCategories(questions);
+      setLoading(false);
+    } catch (error) {
+      console.error("加载数据失败:", error);
+      toast({ title: "错误", description: "加载数据失败", variant: "destructive" });
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
+    const name = formData.get("name") as string;
+    const slug = formData.get("slug") as string;
+    const description = formData.get("description") as string;
+    const type = formData.get("type") as "article" | "product" | "question";
+
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, { name, slug, description });
+        toast({ title: "成功", description: "分类已更新" });
+      } else {
+        await createCategory({ name, slug, description, type });
+        toast({ title: "成功", description: "分类已创建" });
+      }
+      setDialogOpen(false);
+      setEditingCategory(null);
+      loadData();
+    } catch (error) {
+      console.error("保存失败:", error);
+      toast({ title: "错误", description: "保存失败", variant: "destructive" });
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("确定要删除这个分类吗? 关联的内容将变为无分类状态。")) return;
+    
+    try {
+      await deleteCategory(id);
+      toast({ title: "成功", description: "分类已删除" });
+      loadData();
+    } catch (error) {
+      console.error("删除失败:", error);
+      toast({ title: "错误", description: "删除失败", variant: "destructive" });
+    }
+  };
+
+  const openEditDialog = (category: Category) => {
+    setEditingCategory(category);
+    setDialogOpen(true);
+  };
+
+  const openCreateDialog = (type: "article" | "product" | "question") => {
+    setEditingCategory(null);
+    setCurrentType(type);
+    setDialogOpen(true);
+  };
+
+  const renderCategoryList = (categories: Category[], type: string) => (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>{type}分类 ({categories.length})</CardTitle>
+          <Button onClick={() => openCreateDialog(type as any)}>
+            <Plus className="h-4 w-4 mr-2" />
+            新建分类
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {categories.map(category => (
+            <div key={category.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="flex items-center gap-3">
+                <FolderOpen className="h-5 w-5 text-primary" />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold">{category.name}</h3>
+                    <Badge variant="outline">{category.slug}</Badge>
+                  </div>
+                  {category.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{category.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => openEditDialog(category)}>
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => handleDelete(category.id)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))}
+          {categories.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              暂无分类,点击上方按钮创建第一个分类
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold">分类管理</h1>
+      </div>
+
+      <Tabs defaultValue="article" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="article">文章分类</TabsTrigger>
+          <TabsTrigger value="product">产品分类</TabsTrigger>
+          <TabsTrigger value="question">问答分类</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="article">
+          {renderCategoryList(articleCategories, "文章")}
+        </TabsContent>
+
+        <TabsContent value="product">
+          {renderCategoryList(productCategories, "产品")}
+        </TabsContent>
+
+        <TabsContent value="question">
+          {renderCategoryList(questionCategories, "问答")}
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? "编辑分类" : "新建分类"}</DialogTitle>
+            <DialogDescription>
+              填写分类信息,slug用于URL路径
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">分类名称 *</Label>
+              <Input
+                id="name"
+                name="name"
+                defaultValue={editingCategory?.name}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">URL别名 *</Label>
+              <Input
+                id="slug"
+                name="slug"
+                defaultValue={editingCategory?.slug}
+                placeholder="例如: technology"
+                required
+              />
+            </div>
+            {!editingCategory && (
+              <div className="space-y-2">
+                <Label htmlFor="type">分类类型 *</Label>
+                <Select name="type" defaultValue={currentType}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="article">文章分类</SelectItem>
+                    <SelectItem value="product">产品分类</SelectItem>
+                    <SelectItem value="question">问答分类</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="description">描述</Label>
+              <Textarea
+                id="description"
+                name="description"
+                defaultValue={editingCategory?.description || ""}
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                取消
+              </Button>
+              <Button type="submit">
+                {editingCategory ? "更新" : "创建"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

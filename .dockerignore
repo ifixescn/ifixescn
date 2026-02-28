@@ -1,0 +1,116 @@
+# ============================================
+# Docker 忽略文件
+# ============================================
+
+# 依赖目录
+node_modules
+npm-debug.log
+pnpm-debug.log
+yarn-error.log
+
+# 构建产物
+dist
+build
+.next
+out
+
+# 开发工具
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# 测试
+coverage
+.nyc_output
+*.test.js
+*.spec.js
+__tests__
+__mocks__
+
+# 环境变量（生产环境应该通过运行时注入）
+# .env
+# .env.local
+# .env.production
+# .env.development
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# 文档
+*.md
+!README.md
+docs
+documentation
+
+# 日志
+logs
+*.log
+
+# 临时文件
+tmp
+temp
+.tmp
+.cache
+
+# Docker 相关
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# 部署脚本
+deploy.sh
+create-package.sh
+export-to-medo.sh
+batch_insert_demo_data.sh
+
+# Python 相关
+*.py
+*.pyc
+__pycache__
+
+# SQL 文件
+*.sql
+
+# 备份文件
+*.bak
+*.backup
+*.old
+
+# 历史记录
+history
+
+# 规则文件
+rules
+
+# 脚本目录（如果不需要在容器中）
+scripts
+
+# 大型静态资源（如果已经上传到 CDN）
+# public/images/*
+
+# 开发配置
+.eslintrc*
+.prettierrc*
+.editorconfig
+biome.json
+tsconfig*.json
+vite.config.dev.ts
+
+# 其他配置文件
+netlify.toml
+vercel.json
+sgconfig.yml
+components.json
+postcss.config.js
+tailwind.config.mjs

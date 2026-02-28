@@ -1,0 +1,47 @@
+# ============================================
+# Docker Compose 配置 - 开发环境
+# ============================================
+
+version: '3.8'
+
+services:
+  # -------------------- 开发环境前端 --------------------
+  ifixes-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    image: ifixes-cms:dev
+    container_name: ifixes-cms-dev
+    ports:
+      - "5173:5173"  # Vite 开发服务器
+      - "24678:24678"  # Vite HMR
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_ID=${VITE_APP_ID:-app-7fshtpomqha9}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    volumes:
+      # 挂载源代码（支持热更新）
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./index.html:/app/index.html
+      - ./vite.config.ts:/app/vite.config.ts
+      - ./tailwind.config.mjs:/app/tailwind.config.mjs
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./package.json:/app/package.json
+      # 排除 node_modules（使用容器内的）
+      - /app/node_modules
+    restart: unless-stopped
+    networks:
+      - ifixes-dev-network
+    stdin_open: true
+    tty: true
+    labels:
+      - "com.ifixes.app=cms"
+      - "com.ifixes.version=dev"
+      - "com.ifixes.environment=development"
+
+networks:
+  ifixes-dev-network:
+    driver: bridge
+    name: ifixes-dev-network

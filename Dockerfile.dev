@@ -1,0 +1,48 @@
+# ============================================
+# 开发环境 Docker 镜像
+# ============================================
+
+FROM node:18-alpine
+
+# 设置工作目录
+WORKDIR /app
+
+# 安装 pnpm
+RUN npm install -g pnpm
+
+# 安装开发工具
+RUN apk add --no-cache \
+    git \
+    bash \
+    curl \
+    vim
+
+# 复制 package 文件
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# 安装依赖
+RUN pnpm install
+
+# 复制源代码
+COPY . .
+
+# 暴露 Vite 开发服务器端口
+EXPOSE 5173
+
+# 暴露 Vite HMR 端口
+EXPOSE 24678
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:5173/ || exit 1
+
+# 添加标签
+LABEL maintainer="iFixes Team" \
+      version="1.0.0-dev" \
+      description="iFixes CMS - Development Environment" \
+      app.name="ifixes-cms-dev" \
+      environment="development"
+
+# 启动开发服务器
+# 注意：由于 package.json 中 dev 命令被禁用，我们直接使用 vite
+CMD ["pnpm", "exec", "vite", "--host", "0.0.0.0", "--port", "5173"]

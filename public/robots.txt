@@ -1,0 +1,20 @@
+# robots.txt for iFixes CMS
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+
+# Allow crawling of public content
+Allow: /articles/
+Allow: /products/
+Allow: /questions/
+Allow: /search
+
+# Sitemap location
+Sitemap: https://www.ifixes.com/sitemap.xml
