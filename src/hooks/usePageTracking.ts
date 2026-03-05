@@ -24,10 +24,15 @@ function generateUUID(): string {
 
 // 获取或创建访客ID
 function getVisitorId(): string {
-  let visitorId = localStorage.getItem("visitor_id");
-  if (!visitorId) {
+  let visitorId: string | null = null;
+  try {
+    visitorId = localStorage.getItem("visitor_id");
+    if (!visitorId) {
+      visitorId = generateUUID();
+      localStorage.setItem("visitor_id", visitorId);
+    }
+  } catch {
     visitorId = generateUUID();
-    localStorage.setItem("visitor_id", visitorId);
   }
   return visitorId;
 }
@@ -37,8 +42,14 @@ function getSessionId(): string {
   const SESSION_TIMEOUT = 30 * 60 * 1000; // 30分钟
   const now = Date.now();
   
-  let sessionId = sessionStorage.getItem("session_id");
-  const lastActivity = sessionStorage.getItem("last_activity");
+  let sessionId: string | null = null;
+  let lastActivity: string | null = null;
+  try {
+    sessionId = sessionStorage.getItem("session_id");
+    lastActivity = sessionStorage.getItem("last_activity");
+  } catch {
+    return generateUUID();
+  }
   
   // 如果没有会话ID或会话已过期，创建新会话
   if (!sessionId || !lastActivity || now - parseInt(lastActivity) > SESSION_TIMEOUT) {
