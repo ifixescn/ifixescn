@@ -6,10 +6,12 @@ import { Activity, FileText, HelpCircle, MessageSquare, Download as DownloadIcon
 import { getPostTimeline } from "@/db/api";
 import type { MemberPostWithAuthor } from "@/types";
 import { format } from "date-fns";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function ActivityFeed() {
   const [posts, setPosts] = useState<MemberPostWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -82,7 +84,7 @@ export default function ActivityFeed() {
         </CardHeader>
         <CardContent>
           <div className="text-center text-muted-foreground py-8">
-            Loading activities...
+            {t("member.loadingActivities", "Loading activities...")}
           </div>
         </CardContent>
       </Card>
@@ -109,7 +111,7 @@ export default function ActivityFeed() {
         >
           {posts.length === 0 ? (
             <div className="text-center text-muted-foreground py-8">
-              No activities yet
+              {t("member.noActivities", "No activities yet")}
             </div>
           ) : (
             posts.map((post) => (
@@ -118,7 +120,7 @@ export default function ActivityFeed() {
                 className="flex gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
               >
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={post.author?.avatar_url} />
+                  <AvatarImage src={post.author?.avatar_url ?? undefined} />
                   <AvatarFallback>
                     {post.author?.username?.charAt(0).toUpperCase() || 'U'}
                   </AvatarFallback>

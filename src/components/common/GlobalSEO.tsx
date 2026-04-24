@@ -1,10 +1,14 @@
 import { Helmet } from 'react-helmet-async';
+import { useLocation } from 'react-router-dom';
 import { useSEO } from '@/contexts/SEOContext';
+
+const SITE_DOMAIN = "https://www.ifixescn.com";
 
 interface GlobalSEOProps {
   title?: string;
   description?: string;
   keywords?: string;
+  noIndex?: boolean;
 }
 
 /**
@@ -30,8 +34,9 @@ interface GlobalSEOProps {
  *     keywords="产品,工具,维修"
  *   />
  */
-const GlobalSEO = ({ title, description, keywords }: GlobalSEOProps) => {
+const GlobalSEO = ({ title, description, keywords, noIndex = false }: GlobalSEOProps) => {
   const { settings } = useSEO();
+  const location = useLocation();
 
   // 构建完整标题
   const fullTitle = title 
@@ -44,22 +49,36 @@ const GlobalSEO = ({ title, description, keywords }: GlobalSEOProps) => {
   // 使用自定义关键词或全局关键词
   const metaKeywords = keywords || settings.siteKeywords;
 
+  const canonicalUrl = `${SITE_DOMAIN}${location.pathname}`;
+
   return (
     <Helmet>
       <title>{fullTitle}</title>
+      {noIndex ? (
+        <meta name="robots" content="noindex, nofollow" />
+      ) : (
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+      )}
       <meta name="description" content={metaDescription} />
       <meta name="keywords" content={metaKeywords} />
-      
+
+      {/* Canonical URL */}
+      <link rel="canonical" href={canonicalUrl} />
+
       {/* Open Graph / Facebook */}
       <meta property="og:type" content="website" />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={metaDescription} />
+      <meta property="og:url" content={canonicalUrl} />
+      <meta property="og:locale" content="en_US" />
+      <meta property="og:site_name" content={settings.siteName} />
       {settings.siteLogo && <meta property="og:image" content={settings.siteLogo} />}
-      
+
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={metaDescription} />
+      <meta name="twitter:site" content="@iFixes" />
       {settings.siteLogo && <meta name="twitter:image" content={settings.siteLogo} />}
     </Helmet>
   );

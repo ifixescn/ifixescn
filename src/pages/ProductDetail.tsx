@@ -6,15 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { getProductBySlug, incrementProductViews } from "@/db/api";
 import type { ProductWithImages } from "@/types";
-import { ArrowLeft, Eye, Home, ChevronRight } from "lucide-react";
+import { ArrowLeft, Eye, Home, ChevronRight, ZoomIn } from "lucide-react";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
 import PageMeta from "@/components/common/PageMeta";
+import ImageViewer from "@/components/common/ImageViewer";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ProductDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const { t } = useTranslation();
   const [product, setProduct] = useState<ProductWithImages | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
 
   // 记录浏览历史
   useRecordBrowsing("product", product?.id, product?.name);
@@ -43,9 +48,9 @@ export default function ProductDetail() {
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <h1 className="text-2xl font-bold">Product not found</h1>
+        <h1 className="text-2xl font-bold">{t("detail.productNotFound", "Product not found")}</h1>
         <Button asChild>
-          <Link to="/products">Back to Product List</Link>
+          <Link to="/products">{t("detail.backToProducts", "Back to Product List")}</Link>
         </Button>
       </div>
     );
@@ -149,34 +154,59 @@ export default function ProductDetail() {
           <div>
             {product.images && product.images.length > 0 && (
               <div className="space-y-4">
-                <div className="aspect-square w-full overflow-hidden rounded-lg bg-muted">
-                  <img
-                    src={product.images[currentImage].image_url}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    itemProp="image"
-                  />
+                {/* Main Image with Premium Border */}
+                <div className="relative group">
+                  <div 
+                    className="aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-br from-muted to-background border-2 border-border shadow-card hover:shadow-hover transition-all duration-300 cursor-zoom-in"
+                    onClick={() => setIsViewerOpen(true)}
+                  >
+                    <img
+                      src={product.images[currentImage].image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                      itemProp="image"
+                    />
+                  </div>
+                  
+                  {/* Zoom Icon Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                    <div className="bg-background/90 backdrop-blur-sm rounded-full p-4 shadow-lg">
+                      <ZoomIn className="h-8 w-8 text-primary" />
+                    </div>
+                  </div>
+                  
+                  {/* Click to Zoom Hint */}
+                  <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1.5">
+                    <ZoomIn className="h-3 w-3" />
+                    Click to zoom
+                  </div>
                 </div>
-                <div className="grid grid-cols-5 gap-2">
-                  {product.images.map((img, idx) => (
-                    <button
-                      key={img.id}
-                      onClick={() => setCurrentImage(idx)}
-                      className={`border-2 rounded-lg overflow-hidden aspect-square ${
-                        currentImage === idx ? "border-primary" : "border-border"
-                      }`}
-                      aria-label={`View image ${idx + 1}`}
-                    >
-                      <img
-                        src={img.image_url}
-                        alt={`${product.name} ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </button>
-                  ))}
-                </div>
+                
+                {/* Thumbnail Grid */}
+                {product.images.length > 1 && (
+                  <div className="grid grid-cols-5 gap-2">
+                    {product.images.map((img, idx) => (
+                      <button
+                        key={img.id}
+                        onClick={() => setCurrentImage(idx)}
+                        className={`relative rounded-lg overflow-hidden aspect-square transition-all duration-300 ${
+                          currentImage === idx 
+                            ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg scale-105" 
+                            : "ring-1 ring-border hover:ring-primary/50 hover:scale-105 shadow-sm hover:shadow-md"
+                        }`}
+                        aria-label={`View image ${idx + 1}`}
+                      >
+                        <img
+                          src={img.image_url}
+                          alt={`${product.name} ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -193,7 +223,7 @@ export default function ProductDetail() {
                 )}
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <Eye className="h-4 w-4" />
-                  {product.view_count} views
+                  {product.view_count} {t("detail.views", "views")}
                 </div>
               </div>
               <CardTitle className="text-3xl" itemProp="name">
@@ -209,7 +239,7 @@ export default function ProductDetail() {
             <CardContent className="space-y-6">
               {product.description && (
                 <div>
-                  <h3 className="font-semibold text-lg mb-3">Product Description</h3>
+                  <h3 className="font-semibold text-lg mb-3">{t("detail.productDescription", "Product Description")}</h3>
                   <div 
                     className="rich-content text-muted-foreground"
                     itemProp="description"
@@ -224,7 +254,7 @@ export default function ProductDetail() {
         {product.content && (
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Product Details</CardTitle>
+              <CardTitle>{t("detail.productDetails", "Product Details")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div 
@@ -235,6 +265,16 @@ export default function ProductDetail() {
           </Card>
         )}
       </div>
+      
+      {/* Image Viewer Modal */}
+      {isViewerOpen && product.images && product.images.length > 0 && (
+        <ImageViewer
+          images={product.images}
+          currentIndex={currentImage}
+          onClose={() => setIsViewerOpen(false)}
+          productName={product.name}
+        />
+      )}
     </div>
   );
 }

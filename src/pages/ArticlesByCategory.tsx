@@ -9,9 +9,12 @@ import { Calendar, User, ChevronLeft, ChevronRight, Home } from "lucide-react";
 import type { Category, ArticleWithAuthor } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ArticlesByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t } = useTranslation();
   const [category, setCategory] = useState<Category | null>(null);
   const [articles, setArticles] = useState<ArticleWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +109,7 @@ export default function ArticlesByCategory() {
             <p className="text-muted-foreground">Category not found</p>
             <Link to="/articles">
               <Button variant="outline" className="mt-4">
-                Back to Article List
+                {t("cat.backToArticleList", "Back to Article List")}
               </Button>
             </Link>
           </CardContent>
@@ -198,14 +201,14 @@ export default function ArticlesByCategory() {
             <p className="text-lg text-muted-foreground">{category.description}</p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {totalCount} articles
+            {totalCount} {t("cat.articlesCount", "articles")}
           </p>
         </div>
 
         {articles.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No articles in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noArticles", "No articles in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -263,10 +266,10 @@ export default function ArticlesByCategory() {
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
+                  {t("cat.previous", "Previous")}
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
+                  {t("cat.pageOf", "Page {current} of {total}").replace("{current}", String(currentPage)).replace("{total}", String(totalPages))}
                 </span>
                 <Button
                   variant="outline"
@@ -274,7 +277,7 @@ export default function ArticlesByCategory() {
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t("cat.next", "Next")}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>

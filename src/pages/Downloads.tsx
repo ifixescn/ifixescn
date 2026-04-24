@@ -7,8 +7,11 @@ import { Download as DownloadIcon, FileText, Eye } from "lucide-react";
 import { getDownloads, getCategories } from "@/db/api";
 import type { Download, Category } from "@/types";
 import PageMeta from "@/components/common/PageMeta";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function Downloads() {
+  const { t } = useTranslation();
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,9 +61,9 @@ export default function Downloads() {
         keywords="repair manuals, repair downloads, schematics, repair software, technical documents, repair resources, repair tools download"
       />
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Resource Downloads</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("downloads.title", "Resource Downloads")}</h1>
         <p className="text-muted-foreground">
-          Provides various resource downloads, some resources require member permissions
+          {t("downloads.noDownloads", "Provides various resource downloads, some resources require member permissions")}
         </p>
       </div>
 
@@ -71,7 +74,7 @@ export default function Downloads() {
             variant={selectedCategory === "" ? "default" : "outline"}
             onClick={() => setSelectedCategory("")}
           >
-            All
+            {t("downloads.allCategories", "All")}
           </Button>
           {categories.map((category) => (
             <Button
@@ -79,7 +82,7 @@ export default function Downloads() {
               variant={selectedCategory === category.id ? "default" : "outline"}
               onClick={() => setSelectedCategory(category.id)}
             >
-              {category.name}
+              <TranslatedText text={category.name} />
             </Button>
           ))}
         </div>
@@ -89,7 +92,7 @@ export default function Downloads() {
       {downloads.length === 0 ? (
         <div className="text-center py-12">
           <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No downloads yet</p>
+          <p className="text-muted-foreground">{t("downloads.noDownloads", "No downloads yet")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-6">
@@ -98,18 +101,20 @@ export default function Downloads() {
               <CardHeader className="p-3 xl:p-6">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm xl:text-lg mb-1 xl:mb-2 line-clamp-2">{download.title}</CardTitle>
+                    <CardTitle className="text-sm xl:text-lg mb-1 xl:mb-2 line-clamp-2">
+                      <TranslatedText text={download.title} />
+                    </CardTitle>
                     {download.category_id && (
                       <Link to={`/downloads/category/${download.category_id}`}>
                         <Badge variant="secondary" className="mb-1 xl:mb-2 hover:bg-secondary/80 cursor-pointer text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5">
-                          {categories.find((c) => c.id === download.category_id)?.name}
+                          <TranslatedText text={categories.find((c) => c.id === download.category_id)?.name || ""} />
                         </Badge>
                       </Link>
                     )}
                   </div>
                   {download.require_member && (
                     <Badge variant="default" className="text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5 flex-shrink-0">
-                      Member
+                      {t("member.profile", "Member")}
                     </Badge>
                   )}
                 </div>
@@ -117,7 +122,7 @@ export default function Downloads() {
               <CardContent className="p-3 pt-0 xl:p-6 xl:pt-0">
                 {download.description && (
                   <p className="text-xs xl:text-sm text-muted-foreground mb-2 xl:mb-4 line-clamp-2">
-                    {download.description}
+                    <TranslatedText text={download.description} />
                   </p>
                 )}
                 <div className="flex items-center justify-between text-xs xl:text-sm text-muted-foreground mb-2 xl:mb-4">
@@ -135,7 +140,7 @@ export default function Downloads() {
                 <Link to={`/downloads/${download.id}`}>
                   <Button className="w-full h-8 xl:h-10 text-xs xl:text-sm">
                     <Eye className="mr-1 xl:mr-2 h-3 w-3 xl:h-4 xl:w-4" />
-                    View Details
+                    {t("downloads.downloadNow", "View Details")}
                   </Button>
                 </Link>
               </CardContent>

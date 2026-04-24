@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPopularProducts, getFeaturedProducts, getRecentQuestions, getSiteSettings, getSEOSettings } from "@/db/api";
 import PageMeta from "@/components/common/PageMeta";
+import ScrollAnimationWrapper from "@/components/common/ScrollAnimationWrapper";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 import type { ProductWithImages, QuestionWithAnswers, SEOSettings } from "@/types";
 import { 
   ArrowRight, 
@@ -29,6 +32,7 @@ const stripHtml = (html: string): string => {
 };
 
 export default function Home() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<ProductWithImages[]>([]);
   const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
@@ -121,7 +125,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta 
-        title={seoSettings?.site_title || "Home"}
+        title="iFixes - Leading Repair Tools Manufacturer"
+        fullTitleOnly={true}
         description={seoSettings?.site_description || "Global leading mobile phone repair resource integration service provider. Find repair guides, parts, tools, and expert community support."}
         keywords={seoSettings?.site_keywords || "mobile phone repair, smartphone repair, repair guides, repair parts, repair tools, repair community"}
         image={seoSettings?.og_image || undefined}
@@ -133,7 +138,7 @@ export default function Home() {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": seoSettings?.site_title || "iFixes",
+            "name": "iFixes - Leading Repair Tools Manufacturer",
             "description": seoSettings?.site_description || "Global leading mobile phone repair resource integration service provider",
             "url": window.location.origin,
             "potentialAction": {
@@ -150,7 +155,7 @@ export default function Home() {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": seoSettings?.site_title || "iFixes",
+            "name": "iFixes - Leading Repair Tools Manufacturer",
             "description": seoSettings?.site_description || "Global leading mobile phone repair resource integration service provider",
             "url": window.location.origin,
             "logo": seoSettings?.og_image || `${window.location.origin}/logo.png`,
@@ -178,15 +183,15 @@ export default function Home() {
             <div className="space-y-6">
               <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
                 <Award className="h-3 w-3 mr-1" />
-                Professional Repair Resources
+                {t("home.heroBadge", "Professional Repair Resources")}
               </Badge>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Repair Anything.
-                <span className="block text-primary mt-2">Professional Tools.</span>
+                {t("home.heroTitle1", "Repair Anything.")}
+                <span className="block text-primary mt-2">{t("home.heroTitle2", "Professional Tools.")}</span>
               </h1>
               
-              <p className="text-lg text-muted-foreground max-w-xl">With the update of digital products, iFixes continuously develops more simple and easy-to-use tools.Join our community of repair enthusiasts and professionals.</p>
+              <p className="text-lg text-muted-foreground max-w-xl">{t("home.heroDesc", "With the update of digital products, iFixes continuously develops more simple and easy-to-use tools. Join our community of repair enthusiasts and professionals.")}</p>
 
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="flex gap-2 max-w-xl">
@@ -197,19 +202,19 @@ export default function Home() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    placeholder="Seek the repair tool you need"
+                    placeholder={t("home.heroSearch", "Seek the repair tool you need")}
                     className="w-full pl-10 pr-4 py-3 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <Button type="submit" size="lg" className="px-6">
-                  Search
+                  {t("home.heroSearchBtn", "Search")}
                 </Button>
               </form>
 
               {/* Featured Products */}
               <div className="pt-6">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">
-                  Featured Products
+                  {t("home.featuredProducts", "Featured Products")}
                 </h3>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {loading ? (
@@ -242,7 +247,7 @@ export default function Home() {
                           )}
                         </div>
                         <h4 className="text-xs sm:text-sm font-medium line-clamp-2 mb-1 group-hover:text-primary transition-colors leading-tight">
-                          {product.name}
+                          <TranslatedText text={product.name} />
                         </h4>
                         {product.price && (
                           <p className="text-xs sm:text-sm font-bold text-primary">
@@ -253,7 +258,7 @@ export default function Home() {
                     ))
                   ) : (
                     <div className="col-span-2 w-full text-center py-8 text-sm text-muted-foreground">
-                      No featured products available
+                      {t("home.noFeatured", "No featured products available")}
                     </div>
                   )}
                 </div>
@@ -283,20 +288,22 @@ export default function Home() {
       {/* Community Q&A Section */}
       <section className="py-16 bg-muted/30 border-t">
         <div className="container mx-auto px-4">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">Community Q&A</h2>
-              <p className="text-muted-foreground">
-                Get answers from repair experts
-              </p>
+          <ScrollAnimationWrapper animation="fade-in">
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">{t("home.qaSection", "Community Q&A")}</h2>
+                <p className="text-muted-foreground">
+                  {t("home.qaDesc", "Get answers from repair experts")}
+                </p>
+              </div>
+              <Link to="/questions">
+                 <Button variant="outline">
+                  {t("home.viewAll", "View All")}
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
             </div>
-            <Link to="/questions">
-              <Button variant="outline">
-                View All
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
+          </ScrollAnimationWrapper>
 
           {loading ? (
             <div className="grid md:grid-cols-3 gap-6">
@@ -312,39 +319,45 @@ export default function Home() {
             </div>
           ) : (
             <div className="grid md:grid-cols-3 gap-6">
-              {questions.map((question) => (
-                <Link key={question.id} to={`/questions/${question.id}`}>
-                  <Card className="h-full hover:shadow-lg transition-shadow group">
-                    <CardContent className="pt-6">
-                      <div className="flex items-center gap-2 mb-3">
-                        {question.category && (
-                          <Badge variant="secondary" className="text-xs">
-                            {question.category.name}
-                          </Badge>
-                        )}
-                        <div className="flex items-center text-xs text-muted-foreground">
-                          <MessageCircle className="h-3 w-3 mr-1" />
-                          {question.answer_count || 0} answers
+              {questions.map((question, index) => (
+                <ScrollAnimationWrapper 
+                  key={question.id} 
+                  animation="fade-in"
+                  delay={index * 100}
+                >
+                  <Link to={`/questions/${question.id}`}>
+                    <Card className="h-full hover:shadow-lg transition-shadow group hover-lift">
+                      <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          {question.category && (
+                            <Badge variant="secondary" className="text-xs">
+                              <TranslatedText text={question.category.name} />
+                            </Badge>
+                          )}
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <MessageCircle className="h-3 w-3 mr-1" />
+                            {question.answer_count || 0} {t("home.answersCount", "answers")}
+                          </div>
                         </div>
-                      </div>
-                      <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                        {question.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                        {stripHtml(question.content)}
-                      </p>
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <span className="text-sm text-muted-foreground">
-                          {question.author?.username || "Anonymous"}
-                        </span>
-                        <span className="text-sm text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                          View
-                          <ArrowRight className="h-4 w-4" />
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                        <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                          <TranslatedText text={question.title} />
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                          <TranslatedText text={stripHtml(question.content)} />
+                        </p>
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <span className="text-sm text-muted-foreground">
+                            {question.author?.username || t("home.anonymous", "Anonymous")}
+                          </span>
+                          <span className="text-sm text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                            {t("home.view", "View")}
+                            <ArrowRight className="h-4 w-4" />
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </ScrollAnimationWrapper>
               ))}
             </div>
           )}
@@ -353,32 +366,34 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-16 border-t">
         <div className="container mx-auto px-4">
-          <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2 border-primary/20">
-            <CardContent className="py-16 px-8 text-center">
-              <div className="max-w-2xl mx-auto space-y-6">
-                <h2 className="text-3xl md:text-4xl font-bold">
-                  Join the Repair Revolution
-                </h2>
-                <p className="text-lg text-muted-foreground">
-                  Start fixing your devices today with our expert community support and quality parts
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                  <Button size="lg" asChild>
-                    <Link to="/questions">
-                      <MessageCircle className="mr-2 h-5 w-5" />
-                      Ask a Question
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" asChild>
-                    <Link to="/products">
-                      <Wrench className="mr-2 h-5 w-5" />
-                      Shop Parts & Tools
-                    </Link>
-                  </Button>
+          <ScrollAnimationWrapper animation="scale-in">
+            <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2 border-primary/20">
+              <CardContent className="py-16 px-8 text-center">
+                <div className="max-w-2xl mx-auto space-y-6">
+                  <h2 className="text-3xl md:text-4xl font-bold">
+                    {t("home.ctaTitle", "Join the Repair Revolution")}
+                  </h2>
+                  <p className="text-lg text-muted-foreground">
+                    {t("home.ctaDesc", "Start fixing your devices today with our expert community support and quality parts")}
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <Button size="lg" asChild>
+                      <Link to="/questions">
+                        <MessageCircle className="mr-2 h-5 w-5" />
+                        {t("home.ctaAsk", "Ask a Question")}
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" asChild>
+                      <Link to="/products">
+                        <Wrench className="mr-2 h-5 w-5" />
+                        {t("home.ctaShop", "Shop Parts & Tools")}
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </ScrollAnimationWrapper>
         </div>
       </section>
     </div>

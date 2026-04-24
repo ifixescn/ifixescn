@@ -20,6 +20,7 @@ import {
   getUnreadMessageCount,
 } from "@/db/api";
 import type { MessageWithProfiles } from "@/types";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 interface MessagesTabProps {
   userId: string;
@@ -27,6 +28,7 @@ interface MessagesTabProps {
 
 export default function MessagesTab({ userId }: MessagesTabProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [inboxMessages, setInboxMessages] = useState<MessageWithProfiles[]>([]);
   const [sentMessages, setSentMessages] = useState<MessageWithProfiles[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,8 +61,8 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
     } catch (error) {
       console.error("Failed to load messages:", error);
       toast({
-        title: "Error",
-        description: "Failed to load",
+        title: t("auth.error", "Error"),
+        description: t("member.failedLoad", "Failed to load"),
         variant: "destructive",
       });
     } finally {
@@ -80,8 +82,8 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
   const handleSendMessage = async () => {
     if (!newMessage.receiverId || !newMessage.subject || !newMessage.content) {
       toast({
-        title: "Notice",
-        description: "Please fill in all fields",
+        title: t("member.notice", "Notice"),
+        description: t("member.fillAllFields", "Please fill in all fields"),
         variant: "destructive",
       });
       return;
@@ -98,15 +100,15 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
       setNewMessage({ receiverId: "", subject: "", content: "" });
       setIsDialogOpen(false);
       toast({
-        title: "Success",
-        description: "Message sent",
+        title: t("auth.success", "Success"),
+        description: t("member.messageSent", "Message sent"),
       });
       loadMessages();
     } catch (error) {
       console.error("Failed to send message:", error);
       toast({
-        title: "Error",
-        description: "Failed to send",
+        title: t("auth.error", "Error"),
+        description: t("member.failedSend", "Failed to send"),
         variant: "destructive",
       });
     } finally {
@@ -129,7 +131,7 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
   };
 
   const handleDeleteMessage = async (messageId: string, type: "inbox" | "sent") => {
-    if (!confirm("Are you sure you want to delete this message?")) return;
+    if (!confirm(t("member.confirmDeleteMessage", "Are you sure you want to delete this message?"))) return;
 
     try {
       await deleteMessage(messageId);
@@ -139,15 +141,15 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
         setSentMessages(sentMessages.filter((msg) => msg.id !== messageId));
       }
       toast({
-        title: "Success",
-        description: "Message deleted",
+        title: t("auth.success", "Success"),
+        description: t("member.messageDeleted", "Message deleted"),
       });
       loadUnreadCount();
     } catch (error) {
       console.error("Failed to delete message:", error);
       toast({
-        title: "Error",
-        description: "Failed to delete",
+        title: t("auth.error", "Error"),
+        description: t("member.failedDelete", "Failed to delete"),
         variant: "destructive",
       });
     }
@@ -162,7 +164,7 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
 
   const renderMessageList = (messages: MessageWithProfiles[], type: "inbox" | "sent") => {
     if (messages.length === 0) {
-      return <p className="text-center text-muted-foreground py-8">No messages yet</p>;
+      return <p className="text-center text-muted-foreground py-8">{t("member.noMessagesYet", "No messages yet")}</p>;
     }
 
     return (
@@ -188,11 +190,11 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">
-                        {type === "inbox" ? "From: " : "To: "}
-                        {otherUser?.nickname || otherUser?.username || "Unknown User"}
+                        {type === "inbox" ? t("member.from", "From") + ": " : t("member.to", "To") + ": "}
+                        {otherUser?.nickname || otherUser?.username || t("member.unknownUser", "Unknown User")}
                       </span>
                       {!message.is_read && type === "inbox" && (
-                        <Badge variant="destructive">Unread</Badge>
+                        <Badge variant="destructive">{t("member.unread", "Unread")}</Badge>
                       )}
                     </div>
                     <p className="font-medium text-sm mt-1 truncate">{message.subject}</p>
@@ -224,7 +226,7 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">Loading...</p>
+          <p className="text-center text-muted-foreground">{t("member.loading", "Loading...")}</p>
         </CardContent>
       </Card>
     );
@@ -237,29 +239,29 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Messages</CardTitle>
+              <CardTitle>{t("member.messages", "Messages")}</CardTitle>
               <CardDescription>
-                {unreadCount > 0 ? `You have ${unreadCount} unread messages` : "All messages read"}
+                {unreadCount > 0 ? `${t("member.youHave", "You have")} ${unreadCount} ${t("member.unreadMessages", "unread messages")}` : t("member.allRead", "All messages read")}
               </CardDescription>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Send className="h-4 w-4 mr-2" />
-                  Send Message
+                  {t("member.sendMessage", "Send Message")}
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Send New Message</DialogTitle>
-                  <DialogDescription>Send a private message to another member</DialogDescription>
+                  <DialogTitle>{t("member.sendNewMessage", "Send New Message")}</DialogTitle>
+                  <DialogDescription>{t("member.sendPrivateMessage", "Send a private message to another member")}</DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <Label htmlFor="receiverId">Receiver ID</Label>
+                    <Label htmlFor="receiverId">{t("member.receiverId", "Receiver ID")}</Label>
                     <Input
                       id="receiverId"
-                      placeholder="Enter receiver's user ID"
+                      placeholder={t("member.enterReceiverId", "Enter receiver's user ID")}
                       value={newMessage.receiverId}
                       onChange={(e) =>
                         setNewMessage({ ...newMessage, receiverId: e.target.value })
@@ -267,10 +269,10 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="subject">Subject</Label>
+                    <Label htmlFor="subject">{t("member.subject", "Subject")}</Label>
                     <Input
                       id="subject"
-                      placeholder="Message subject"
+                      placeholder={t("member.messageSubject", "Message subject")}
                       value={newMessage.subject}
                       onChange={(e) =>
                         setNewMessage({ ...newMessage, subject: e.target.value })
@@ -278,10 +280,10 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="content">Content</Label>
+                    <Label htmlFor="content">{t("member.content", "Content")}</Label>
                     <Textarea
                       id="content"
-                      placeholder="Message content"
+                      placeholder={t("member.messageContent", "Message content")}
                       value={newMessage.content}
                       onChange={(e) =>
                         setNewMessage({ ...newMessage, content: e.target.value })
@@ -292,10 +294,10 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
                 </div>
                 <DialogFooter>
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
+                    {t("member.cancel", "Cancel")}
                   </Button>
                   <Button onClick={handleSendMessage} disabled={isSending}>
-                    {isSending ? "Sending..." : "Send"}
+                    {isSending ? t("member.sending", "Sending...") : t("member.send", "Send")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -311,11 +313,11 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="inbox">
                 <Mail className="h-4 w-4 mr-2" />
-                Inbox {unreadCount > 0 && `(${unreadCount})`}
+                {t("member.inbox", "Inbox")} {unreadCount > 0 && `(${unreadCount})`}
               </TabsTrigger>
               <TabsTrigger value="sent">
                 <Send className="h-4 w-4 mr-2" />
-                Sent
+                {t("member.sent", "Sent")}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="inbox" className="mt-4">
@@ -335,10 +337,10 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
             <DialogHeader>
               <DialogTitle>{selectedMessage.subject}</DialogTitle>
               <DialogDescription>
-                {selectedMessage.sender_id === userId ? "To: " : "From: "}
+                {selectedMessage.sender_id === userId ? t("member.to", "To") + ": " : t("member.from", "From") + ": "}
                 {(selectedMessage.sender_id === userId
                   ? selectedMessage.receiver?.nickname || selectedMessage.receiver?.username
-                  : selectedMessage.sender?.nickname || selectedMessage.sender?.username) || "Unknown User"}
+                  : selectedMessage.sender?.nickname || selectedMessage.sender?.username) || t("member.unknownUser", "Unknown User")}
                 {" · "}
                 {format(new Date(selectedMessage.created_at), "yyyy-MM-dd HH:mm")}
               </DialogDescription>
@@ -348,7 +350,7 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setSelectedMessage(null)}>
-                Close
+                {t("member.close", "Close")}
               </Button>
               {selectedMessage.sender_id !== userId && (
                 <Button
@@ -363,7 +365,7 @@ export default function MessagesTab({ userId }: MessagesTabProps) {
                   }}
                 >
                   <Send className="h-4 w-4 mr-2" />
-                  Reply
+                  {t("member.reply", "Reply")}
                 </Button>
               )}
             </DialogFooter>

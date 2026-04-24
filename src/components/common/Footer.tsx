@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getSiteSetting } from "@/db/api";
 import { Mail, MapPin, Phone, Clock } from "lucide-react";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 interface FooterLink {
   name: string;
@@ -9,6 +11,7 @@ interface FooterLink {
 }
 
 const Footer = () => {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const [companyName, setCompanyName] = useState("iFixes");
   const [copyrightText, setCopyrightText] = useState("iFixes");
@@ -90,10 +93,10 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           {/* About Us */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">About Us</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("footer.aboutUs", "About Us")}</h3>
             {aboutUs ? (
               <p className="text-muted-foreground text-sm leading-relaxed">
-                {aboutUs}
+                <TranslatedText text={aboutUs} />
               </p>
             ) : (
               <p className="text-muted-foreground text-sm">
@@ -104,7 +107,7 @@ const Footer = () => {
 
           {/* Contact Information */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Info</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("footer.contactInfo", "Contact Info")}</h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               {contactAddress && (
                 <div className="flex items-start gap-2">
@@ -134,12 +137,12 @@ const Footer = () => {
 
           {/* Business Hours */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Business Hours</h3>
+            <h3 className="text-lg font-semibold mb-4">{t("footer.businessHours", "Business Hours")}</h3>
             <div className="space-y-3 text-sm text-muted-foreground">
               {businessHours && (
                 <div className="flex items-start gap-2">
                   <Clock className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>{businessHours}</span>
+                  <TranslatedText text={businessHours} />
                 </div>
               )}
               {footerLinks.length > 0 && (
@@ -153,14 +156,14 @@ const Footer = () => {
                           rel="noopener noreferrer"
                           className="hover:text-primary transition-colors"
                         >
-                          {link.name}
+                          <TranslatedText text={link.name} />
                         </a>
                       ) : (
                         <Link
                           to={link.url}
                           className="hover:text-primary transition-colors"
                         >
-                          {link.name}
+                          <TranslatedText text={link.name} />
                         </Link>
                       )}
                     </div>
@@ -179,17 +182,24 @@ const Footer = () => {
             </div>
             <div className="flex flex-wrap justify-center md:justify-end gap-4">
               <Link
+                to="/yiyuan"
+                className="hover:text-primary transition-colors"
+              >
+                {t("footer.yiyuanChemical", "Yiyuan Chemical")}
+              </Link>
+              <span>|</span>
+              <Link
                 to="/privacy"
                 className="hover:text-primary transition-colors"
               >
-                Privacy Policy
+                {t("footer.privacyPolicy", "Privacy Policy")}
               </Link>
               <span>|</span>
               <Link
                 to="/terms"
                 className="hover:text-primary transition-colors"
               >
-                Terms of Service
+                {t("footer.termsOfService", "Terms of Service")}
               </Link>
               {(icpNumber || policeNumber) && <span>|</span>}
               {icpNumber && (

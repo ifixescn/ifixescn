@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SEOProvider } from '@/contexts/SEOContext';
+import { TranslationProvider } from '@/contexts/TranslationContext';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/db/supabase';
@@ -159,9 +160,11 @@ function App() {
       <HelmetProvider>
         <SEOProvider>
           <AuthProvider client={supabase}>
-            <Router>
-              <AppContent />
-            </Router>
+            <TranslationProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </TranslationProvider>
           </AuthProvider>
         </SEOProvider>
       </HelmetProvider>

@@ -19,6 +19,7 @@ import {
   addPostComment,
 } from "@/db/api";
 import type { MemberPostWithAuthor, PostCommentWithAuthor } from "@/types";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 interface PostsTabProps {
   userId: string;
@@ -28,6 +29,7 @@ interface PostsTabProps {
 
 export default function PostsTab({ userId, viewMode = "timeline", targetUserId }: PostsTabProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<MemberPostWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [newPostContent, setNewPostContent] = useState("");
@@ -81,14 +83,14 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
       setNewPostContent("");
       toast({
         title: "Success",
-        description: "Post published successfully",
+        description: t("member.postPublished", "Post published successfully"),
       });
       loadPosts();
     } catch (error) {
       console.error("Failed to publish post:", error);
       toast({
         title: "Error",
-        description: "Failed to publish post",
+        description: t("member.failedPublishPost", "Failed to publish post"),
         variant: "destructive",
       });
     } finally {
@@ -132,13 +134,13 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
       setPosts(posts.filter(post => post.id !== postId));
       toast({
         title: "Success",
-        description: "Post deleted",
+        description: t("member.postDeleted", "Post deleted"),
       });
     } catch (error) {
       console.error("Failed to delete post:", error);
       toast({
         title: "Error",
-        description: "Failed to delete post",
+        description: t("member.failedDeletePost", "Failed to delete post"),
         variant: "destructive",
       });
     }
@@ -171,7 +173,7 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
 
       toast({
         title: "Success",
-        description: "Comment published",
+        description: t("member.commentPublished", "Comment published"),
       });
     } catch (error) {
       console.error("Failed to add comment:", error);
@@ -199,7 +201,7 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">Loading...</p>
+          <p className="text-center text-muted-foreground">{t("member.loading", "Loading...")}</p>
         </CardContent>
       </Card>
     );
@@ -211,12 +213,12 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
       {viewMode === "timeline" && (
         <Card>
           <CardHeader>
-            <CardTitle>Publish Post</CardTitle>
-            <CardDescription>Share your thoughts and feelings</CardDescription>
+            <CardTitle>{t("member.publishPost", "Publish Post")}</CardTitle>
+            <CardDescription>{t("member.shareThoughts", "Share your thoughts and feelings")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Textarea
-              placeholder="Share something new..."
+              placeholder={t("member.shareNew", "Share something new...")}
               value={newPostContent}
               onChange={(e) => setNewPostContent(e.target.value)}
               rows={4}
@@ -224,7 +226,7 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
             <div className="flex justify-end">
               <Button onClick={handlePublishPost} disabled={isPublishing}>
                 <Send className="h-4 w-4 mr-2" />
-                {isPublishing ? "Publishing..." : "Publish"}
+                {isPublishing ? t("member.publishing", "Publishing...") : t("member.publish", "Publish")}
               </Button>
             </div>
           </CardContent>
@@ -234,14 +236,14 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
       {/* Posts Timeline */}
       <Card>
         <CardHeader>
-          <CardTitle>Posts Timeline</CardTitle>
+          <CardTitle>{t("member.postsTimeline", "Posts Timeline")}</CardTitle>
           <CardDescription>
-            {viewMode === "user" ? "User's posts" : "Latest posts"}
+            {viewMode === "user" ? t("member.userPosts", "User's posts") : t("member.latestPosts", "Latest posts")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {posts.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No posts yet</p>
+            <p className="text-center text-muted-foreground py-8">{t("member.noPostsYet", "No posts yet")}</p>
           ) : (
             posts.map((post) => (
               <div key={post.id} className="border rounded-lg p-4 space-y-3">
@@ -331,7 +333,7 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
                       <div className="space-y-4">
                         {/* Comments List */}
                         {comments.length === 0 ? (
-                          <p className="text-center text-muted-foreground py-4">No comments yet</p>
+                          <p className="text-center text-muted-foreground py-4">{t("member.noCommentsYet", "No comments yet")}</p>
                         ) : (
                           comments.map((comment) => (
                             <div key={comment.id} className="flex gap-3 border-b pb-3">
@@ -358,7 +360,7 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
                       </div>
                       <DialogFooter className="flex-col sm:flex-row gap-2">
                         <Textarea
-                          placeholder="Write your comment..."
+                          placeholder={t("member.writeComment", "Write your comment...")}
                           value={newComment}
                           onChange={(e) => setNewComment(e.target.value)}
                           rows={2}
@@ -366,7 +368,7 @@ export default function PostsTab({ userId, viewMode = "timeline", targetUserId }
                         />
                         <Button onClick={handleAddComment} disabled={isCommenting}>
                           <Send className="h-4 w-4 mr-2" />
-                          Send
+                          {t("member.send", "Send")}
                         </Button>
                       </DialogFooter>
                     </DialogContent>

@@ -9,7 +9,10 @@ import { getCategoryById, getQuestionsByCategoryId, countQuestionsByCategory, ge
 import { Calendar, User, MessageCircle, ChevronLeft, FolderOpen, TrendingUp } from "lucide-react";
 import type { Category, QuestionWithAnswers, ProductWithImages } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 // Helper function to strip HTML tags and get plain text
 const stripHtml = (html: string): string => {
@@ -20,6 +23,7 @@ const stripHtml = (html: string): string => {
 
 export default function QuestionsByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t } = useTranslation();
   const [category, setCategory] = useState<Category | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
@@ -125,10 +129,10 @@ export default function QuestionsByCategory() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Category not found</p>
+            <p className="text-muted-foreground">{t("cat.categoryNotFound", "Category not found")}</p>
             <Link to="/questions">
               <Button variant="outline" className="mt-4">
-                BackQ&A List
+                {t("cat.backToQAList", "Back to Q&A List")}
               </Button>
             </Link>
           </CardContent>
@@ -144,6 +148,29 @@ export default function QuestionsByCategory() {
         description={category.description || `Browse ${category.name} questions`}
         keywords={category.seo_keywords || category.name}
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Q&A", "item": `${window.location.origin}/questions` },
+              { "@type": "ListItem", "position": 3, "name": category.name, "item": window.location.href }
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": category.name,
+            "description": category.description || `Browse ${category.name} questions`,
+            "url": window.location.href,
+            "isPartOf": { "@type": "WebSite", "name": siteName || "iFixes", "url": window.location.origin }
+          })}
+        </script>
+      </Helmet>
       {category.banner_image && (
         <div className="w-full h-64 xl:h-80 overflow-hidden bg-muted">
           <img
@@ -159,7 +186,7 @@ export default function QuestionsByCategory() {
           <Link to="/questions">
             <Button variant="ghost" size="sm" className="mb-4">
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Q&A List
+              {t("cat.backToQAList", "Back to Q&A List")}
             </Button>
           </Link>
           <h1 className="text-4xl font-bold mb-4">{category.name}</h1>
@@ -167,14 +194,14 @@ export default function QuestionsByCategory() {
             <p className="text-lg text-muted-foreground">{category.description}</p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {totalCount} Questions
+            {totalCount} {t("cat.questionsCount", "Questions")}
           </p>
         </div>
 
         {questions.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No questions in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noQuestions", "No questions in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -186,13 +213,13 @@ export default function QuestionsByCategory() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FolderOpen className="h-5 w-5" />
-                    Q&A Categories
+                    {t("detail.qaCategories", "Q&A Categories")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1">
                   <Link to="/questions">
                     <Button variant="ghost" className="w-full justify-start">
-                      All Q&A
+                      {t("detail.allQA", "All Q&A")}
                     </Button>
                   </Link>
                   {categories.map(cat => (

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import {
   LineChart,
   Line,
@@ -24,13 +25,17 @@ import {
   getTopPages,
   getLocationStats,
   getDeviceStats,
-  getRecentPageViews,
+  getCountryStats,
+  getIspStats,
+  getRecentViewsWithIp,
 } from "@/db/api";
 import type {
   AnalyticsOverview,
   RealtimeAnalytics,
   TopPage,
   LocationStats,
+  CountryStats,
+  IspStats,
   DeviceStats,
   PageView,
 } from "@/types";
@@ -46,11 +51,20 @@ import {
   MapPin,
   BarChart3,
   Activity,
+  Wifi,
+  Network,
 } from "lucide-react";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
-const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
+const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4", "#84cc16"];
+
+// 国家代码 → emoji 国旗
+function countryFlag(code: string): string {
+  if (!code || code.length !== 2) return "🌐";
+  const pts = [...code.toUpperCase()].map((c) => 0x1f1e6 - 65 + c.charCodeAt(0));
+  return String.fromCodePoint(...pts);
+}
 
 export default function Analytics() {
   const [loading, setLoading] = useState(true);
@@ -59,6 +73,8 @@ export default function Analytics() {
   const [realtimeData, setRealtimeData] = useState<RealtimeAnalytics[]>([]);
   const [topPages, setTopPages] = useState<TopPage[]>([]);
   const [locationStats, setLocationStats] = useState<LocationStats[]>([]);
+  const [countryStats, setCountryStats] = useState<CountryStats[]>([]);
+  const [ispStats, setIspStats] = useState<IspStats[]>([]);
   const [deviceStats, setDeviceStats] = useState<DeviceStats[]>([]);
   const [recentViews, setRecentViews] = useState<PageView[]>([]);
 
@@ -71,9 +87,11 @@ export default function Analytics() {
       setLoading(true);
       const [
         overviewData,
-        realtimeData,
+        rtData,
         topPagesData,
         locationData,
+        countryData,
+        ispData,
         deviceData,
         recentData,
       ] = await Promise.all([
@@ -81,14 +99,18 @@ export default function Analytics() {
         getRealtimeAnalytics(days),
         getTopPages(10, days),
         getLocationStats(days),
+        getCountryStats(days),
+        getIspStats(days),
         getDeviceStats(days),
-        getRecentPageViews(20),
+        getRecentViewsWithIp(50),
       ]);
 
       setOverview(overviewData);
-      setRealtimeData(realtimeData);
+      setRealtimeData(rtData);
       setTopPages(topPagesData);
       setLocationStats(locationData);
+      setCountryStats(countryData);
+      setIspStats(ispData);
       setDeviceStats(deviceData);
       setRecentViews(recentData);
     } catch (error) {
@@ -108,27 +130,18 @@ export default function Analytics() {
 
   // 设备类型图标
   const getDeviceIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case "mobile":
-        return <Smartphone className="h-4 w-4" />;
-      case "tablet":
-        return <Tablet className="h-4 w-4" />;
-      default:
-        return <Monitor className="h-4 w-4" />;
+    switch (type?.toLowerCase()) {
+      case "mobile": return <Smartphone className="h-4 w-4" />;
+      case "tablet": return <Tablet className="h-4 w-4" />;
+      default: return <Monitor className="h-4 w-4" />;
     }
   };
 
-  // 准备设备类型饼图数据
+  // 设备饼图数据
   const deviceTypeData = deviceStats.reduce((acc, stat) => {
     const existing = acc.find((item) => item.name === stat.device_type);
-    if (existing) {
-      existing.value += Number(stat.view_count);
-    } else {
-      acc.push({
-        name: stat.device_type,
-        value: Number(stat.view_count),
-      });
-    }
+    if (existing) { existing.value += Number(stat.view_count); }
+    else { acc.push({ name: stat.device_type, value: Number(stat.view_count) }); }
     return acc;
   }, [] as { name: string; value: number }[]);
 
@@ -153,7 +166,7 @@ export default function Analytics() {
             流量统计
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            实时查看网站访问数据和用户行为分析
+            实时查看网站访问数据、IP 归属地及用户行为分析
           </p>
         </div>
         <Select value={days.toString()} onValueChange={(v) => setDays(parseInt(v))}>
@@ -178,12 +191,9 @@ export default function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overview?.today_views || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              总访问量: {overview?.total_views || 0}
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">总访问量: {overview?.total_views || 0}</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">今日访客</CardTitle>
@@ -191,25 +201,19 @@ export default function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{overview?.today_visitors || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              总访客数: {overview?.total_visitors || 0}
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">总访客数: {overview?.total_visitors || 0}</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">平均停留时长</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {formatDuration(overview?.avg_duration || 0)}
-            </div>
+            <div className="text-2xl font-bold">{formatDuration(overview?.avg_duration || 0)}</div>
             <p className="text-xs text-muted-foreground mt-1">今日平均</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">跳出率</CardTitle>
@@ -224,26 +228,27 @@ export default function Analytics() {
 
       {/* 详细统计标签页 */}
       <Tabs defaultValue="trend" className="space-y-4">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto">
           <TabsTrigger value="trend">
-            <Activity className="h-4 w-4 mr-2" />
-            访问趋势
+            <Activity className="h-4 w-4 mr-2" />访问趋势
           </TabsTrigger>
           <TabsTrigger value="pages">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            页面排行
+            <BarChart3 className="h-4 w-4 mr-2" />页面排行
           </TabsTrigger>
           <TabsTrigger value="location">
-            <MapPin className="h-4 w-4 mr-2" />
-            地区分布
+            <MapPin className="h-4 w-4 mr-2" />地区分布
+          </TabsTrigger>
+          <TabsTrigger value="country">
+            <Globe className="h-4 w-4 mr-2" />国家排行
           </TabsTrigger>
           <TabsTrigger value="device">
-            <Monitor className="h-4 w-4 mr-2" />
-            设备统计
+            <Monitor className="h-4 w-4 mr-2" />设备统计
           </TabsTrigger>
-          <TabsTrigger value="realtime">
-            <Globe className="h-4 w-4 mr-2" />
-            实时访问
+          <TabsTrigger value="isp">
+            <Wifi className="h-4 w-4 mr-2" />运营商
+          </TabsTrigger>
+          <TabsTrigger value="ipdetail">
+            <Network className="h-4 w-4 mr-2" />IP 明细
           </TabsTrigger>
         </TabsList>
 
@@ -258,35 +263,12 @@ export default function Analytics() {
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={realtimeData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickFormatter={(value) =>
-                      format(new Date(value), "MM-dd", { locale: zhCN })
-                    }
-                  />
+                  <XAxis dataKey="date" tickFormatter={(v) => format(new Date(v), "MM-dd", { locale: zhCN })} />
                   <YAxis />
-                  <Tooltip
-                    labelFormatter={(value) =>
-                      format(new Date(value as string), "yyyy年MM月dd日", {
-                        locale: zhCN,
-                      })
-                    }
-                  />
+                  <Tooltip labelFormatter={(v) => format(new Date(v as string), "yyyy年MM月dd日", { locale: zhCN })} />
                   <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="total_views"
-                    stroke="#3b82f6"
-                    name="访问量"
-                    strokeWidth={2}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="unique_visitors"
-                    stroke="#10b981"
-                    name="访客数"
-                    strokeWidth={2}
-                  />
+                  <Line type="monotone" dataKey="total_views" stroke="#3b82f6" name="访问量" strokeWidth={2} />
+                  <Line type="monotone" dataKey="unique_visitors" stroke="#10b981" name="访客数" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -303,10 +285,7 @@ export default function Analytics() {
             <CardContent>
               <div className="space-y-4">
                 {topPages.map((page, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
+                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">{index + 1}</Badge>
@@ -330,63 +309,126 @@ export default function Analytics() {
                     </div>
                   </div>
                 ))}
+                {topPages.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">暂无数据</p>
+                )}
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* 地区分布 */}
+        {/* 地区分布（城市级） */}
         <TabsContent value="location" className="space-y-4">
           <div className="grid gap-4 xl:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>地区分布</CardTitle>
-                <CardDescription>访客地理位置统计</CardDescription>
+                <CardTitle>城市访问排行</CardTitle>
+                <CardDescription>访客城市级地理位置统计（Top 10）</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {locationStats.slice(0, 10).map((location, index) => (
+                  {locationStats.slice(0, 10).map((loc, index) => (
                     <div key={index} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">
-                          {location.country} {location.region} {location.city}
-                        </span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-base">{countryFlag(loc.country_code)}</span>
+                        <div className="min-w-0">
+                          <span className="text-sm font-medium truncate block">
+                            {[loc.city, loc.region, loc.country].filter(Boolean).join(" · ") || "未知"}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex gap-4 text-sm">
-                        <span className="text-muted-foreground">
-                          访问: <span className="font-medium text-foreground">{location.view_count}</span>
-                        </span>
-                        <span className="text-muted-foreground">
-                          访客: <span className="font-medium text-foreground">{location.unique_visitors}</span>
-                        </span>
+                      <div className="flex gap-4 text-sm shrink-0 ml-2">
+                        <span className="text-muted-foreground">访问: <span className="font-medium text-foreground">{loc.view_count}</span></span>
+                        <span className="text-muted-foreground">访客: <span className="font-medium text-foreground">{loc.unique_visitors}</span></span>
                       </div>
                     </div>
                   ))}
+                  {locationStats.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">暂无地区数据（IP 归属地需要访问才能记录）</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle>访问量分布</CardTitle>
-                <CardDescription>各地区访问量占比</CardDescription>
+                <CardTitle>城市访问量柱状图</CardTitle>
+                <CardDescription>各城市访问量对比</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={locationStats.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="city"
-                      tick={{ fontSize: 12 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={80}
-                    />
+                    <XAxis dataKey="city" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={60} />
                     <YAxis />
                     <Tooltip />
                     <Bar dataKey="view_count" fill="#3b82f6" name="访问量" />
                   </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* 国家排行 */}
+        <TabsContent value="country" className="space-y-4">
+          <div className="grid gap-4 xl:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>国家/地区访问排行</CardTitle>
+                <CardDescription>各国家访客占比统计</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {countryStats.slice(0, 15).map((c, index) => (
+                    <div key={index} className="space-y-1">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xl leading-none">{countryFlag(c.country_code)}</span>
+                          <span className="font-medium">{c.country || "未知"}</span>
+                          {c.country_code && (
+                            <Badge variant="outline" className="text-xs">{c.country_code}</Badge>
+                          )}
+                        </div>
+                        <div className="flex gap-3 text-muted-foreground">
+                          <span>访问 <span className="font-semibold text-foreground">{c.view_count}</span></span>
+                          <span>访客 <span className="font-semibold text-foreground">{c.unique_visitors}</span></span>
+                          <span className="font-bold text-foreground">{c.percentage}%</span>
+                        </div>
+                      </div>
+                      <Progress value={Number(c.percentage)} className="h-1.5 bg-muted" />
+                    </div>
+                  ))}
+                  {countryStats.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">暂无国家数据</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>国家访问量分布</CardTitle>
+                <CardDescription>各国家访问量占比饼图</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={320}>
+                  <PieChart>
+                    <Pie
+                      data={countryStats.slice(0, 8).map((c) => ({ name: c.country || "未知", value: Number(c.view_count) }))}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={100}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
+                      {countryStats.slice(0, 8).map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -409,14 +451,11 @@ export default function Analytics() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name} ${(percent * 100).toFixed(0)}%`
-                      }
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       outerRadius={100}
-                      fill="#8884d8"
                       dataKey="value"
                     >
-                      {deviceTypeData.map((entry, index) => (
+                      {deviceTypeData.map((_, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
@@ -443,12 +482,8 @@ export default function Analytics() {
                         </div>
                       </div>
                       <div className="flex gap-4 text-sm">
-                        <span className="text-muted-foreground">
-                          访问: <span className="font-medium text-foreground">{device.view_count}</span>
-                        </span>
-                        <span className="text-muted-foreground">
-                          访客: <span className="font-medium text-foreground">{device.unique_visitors}</span>
-                        </span>
+                        <span className="text-muted-foreground">访问: <span className="font-medium text-foreground">{device.view_count}</span></span>
+                        <span className="text-muted-foreground">访客: <span className="font-medium text-foreground">{device.unique_visitors}</span></span>
                       </div>
                     </div>
                   ))}
@@ -458,46 +493,107 @@ export default function Analytics() {
           </div>
         </TabsContent>
 
-        {/* 实时访问 */}
-        <TabsContent value="realtime" className="space-y-4">
+        {/* 运营商/ISP */}
+        <TabsContent value="isp" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>最近访问记录</CardTitle>
-              <CardDescription>实时访问日志</CardDescription>
+              <CardTitle>网络运营商分布</CardTitle>
+              <CardDescription>访客使用的网络运营商（ISP）统计</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {recentViews.map((view) => (
-                  <div
-                    key={view.id}
-                    className="flex items-center justify-between p-3 border rounded text-sm"
-                  >
-                    <div className="flex-1">
-                      <div className="font-medium">{view.page_title || view.page_url}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {view.page_url}
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="space-y-3">
+                  {ispStats.slice(0, 15).map((isp, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex items-center gap-2">
+                        <Wifi className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm font-medium truncate">{isp.isp}</span>
+                      </div>
+                      <div className="flex gap-4 text-sm shrink-0">
+                        <span className="text-muted-foreground">访问: <span className="font-medium text-foreground">{isp.view_count}</span></span>
+                        <span className="text-muted-foreground">访客: <span className="font-medium text-foreground">{isp.unique_visitors}</span></span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        {getDeviceIcon(view.device_type || "desktop")}
-                        <span>{view.device_type}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        <span>{view.city || view.region || view.country || "未知"}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>
-                          {format(new Date(view.created_at), "HH:mm:ss", {
-                            locale: zhCN,
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                  {ispStats.length === 0 && (
+                    <p className="text-center text-muted-foreground py-8">暂无运营商数据</p>
+                  )}
+                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={ispStats.slice(0, 10)} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis type="category" dataKey="isp" width={120} tick={{ fontSize: 11 }} />
+                    <Tooltip />
+                    <Bar dataKey="view_count" fill="#8b5cf6" name="访问量" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* IP 明细 */}
+        <TabsContent value="ipdetail" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>IP 访问明细</CardTitle>
+              <CardDescription>最近50条访问记录，含完整 IP 归属地信息</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-muted-foreground">
+                      <th className="text-left pb-2 pr-4 font-medium">时间</th>
+                      <th className="text-left pb-2 pr-4 font-medium">IP 地址</th>
+                      <th className="text-left pb-2 pr-4 font-medium">归属地</th>
+                      <th className="text-left pb-2 pr-4 font-medium">运营商</th>
+                      <th className="text-left pb-2 pr-4 font-medium">页面</th>
+                      <th className="text-left pb-2 font-medium">设备</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentViews.map((view) => (
+                      <tr key={view.id} className="border-b hover:bg-muted/30 transition-colors">
+                        <td className="py-2 pr-4 whitespace-nowrap text-muted-foreground">
+                          {format(new Date(view.created_at), "MM-dd HH:mm:ss", { locale: zhCN })}
+                        </td>
+                        <td className="py-2 pr-4">
+                          <code className="text-xs bg-muted px-1.5 py-0.5 rounded font-mono">
+                            {view.ip_address || "—"}
+                          </code>
+                        </td>
+                        <td className="py-2 pr-4">
+                          <div className="flex items-center gap-1.5">
+                            <span>{countryFlag((view as PageView & { country_code?: string }).country_code || "")}</span>
+                            <span className="text-xs">
+                              {[view.city, view.region, view.country].filter(Boolean).join(" · ") || "未知"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-2 pr-4 text-xs text-muted-foreground max-w-[160px] truncate">
+                          {(view as PageView & { isp?: string }).isp || "—"}
+                        </td>
+                        <td className="py-2 pr-4 max-w-[200px]">
+                          <div className="truncate text-xs" title={view.page_url}>
+                            {view.page_title || view.page_url}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">{view.page_url}</div>
+                        </td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            {getDeviceIcon(view.device_type || "desktop")}
+                            <span>{view.browser}</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {recentViews.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8">暂无访问记录</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -506,3 +602,4 @@ export default function Analytics() {
     </div>
   );
 }
+

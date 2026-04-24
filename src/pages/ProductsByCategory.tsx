@@ -18,9 +18,12 @@ import { ChevronLeft, Tag, Home, ChevronRight } from "lucide-react";
 import type { Category, ProductWithImages } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ProductsByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t } = useTranslation();
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
@@ -148,10 +151,10 @@ export default function ProductsByCategory() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Category not found</p>
+            <p className="text-muted-foreground">{t("cat.categoryNotFound", "Category not found")}</p>
             <Link to="/products">
               <Button variant="outline" className="mt-4">
-                Back to Product List
+                {t("cat.backToProductList", "Back to Product List")}
               </Button>
             </Link>
           </CardContent>
@@ -241,7 +244,7 @@ export default function ProductsByCategory() {
           <Link to="/products">
             <Button variant="ghost" size="sm" className="mb-4">
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Product List
+              {t("cat.backToProductList", "Back to Product List")}
             </Button>
           </Link>
           <h1 className="text-4xl font-bold mb-4">{category.name}</h1>
@@ -249,14 +252,14 @@ export default function ProductsByCategory() {
             <p className="text-lg text-muted-foreground">{category.description}</p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {totalCount} {totalCount === 1 ? 'product' : 'products'}
+            {totalCount} {t("cat.productsCount", "products")}
           </p>
         </div>
 
         {products.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No products in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noProducts", "No products in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (

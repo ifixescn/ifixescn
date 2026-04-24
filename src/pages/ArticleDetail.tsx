@@ -10,9 +10,12 @@ import type { ArticleWithAuthor } from "@/types";
 import { ArrowLeft, Calendar, User, Eye, Clock, TrendingUp, Home, ChevronRight } from "lucide-react";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ArticleDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const { t } = useTranslation();
   const [article, setArticle] = useState<ArticleWithAuthor | null>(null);
   const [recentArticles, setRecentArticles] = useState<ArticleWithAuthor[]>([]);
   const [relatedArticles, setRelatedArticles] = useState<ArticleWithAuthor[]>([]);
@@ -66,9 +69,9 @@ export default function ArticleDetail() {
   if (!article) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <h1 className="text-2xl font-bold">Article Not Found</h1>
+        <h1 className="text-2xl font-bold">{t("detail.articleNotFound", "Article Not Found")}</h1>
         <Button asChild>
-          <Link to="/articles">Back to Articles</Link>
+          <Link to="/articles">{t("detail.backToArticles", "Back to Articles")}</Link>
         </Button>
       </div>
     );
@@ -183,11 +186,11 @@ export default function ArticleDetail() {
                   </div>
                   <div className="flex items-center gap-1 text-xs xl:text-sm text-muted-foreground">
                     <User className="h-3 w-3 xl:h-4 xl:w-4" />
-                    <span itemProp="author">{article.author?.username || "Anonymous"}</span>
+                    <span itemProp="author">{article.author?.username || t("detail.anonymous", "Anonymous")}</span>
                   </div>
                   <div className="flex items-center gap-1 text-xs xl:text-sm text-muted-foreground">
                     <Eye className="h-3 w-3 xl:h-4 xl:w-4" />
-                    {article.view_count} views
+                    {article.view_count} {t("detail.views", "views")}
                   </div>
                 </div>
                 <CardTitle className="text-2xl xl:text-3xl" itemProp="headline">
@@ -243,7 +246,7 @@ export default function ArticleDetail() {
                 <CardHeader>
                   <CardTitle className="text-lg xl:text-xl flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Related Articles
+                    {t("detail.relatedArticles", "Related Articles")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -287,7 +290,7 @@ export default function ArticleDetail() {
                 <CardHeader>
                   <CardTitle className="text-lg xl:text-xl flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Recent Articles
+                    {t("detail.recentArticles", "Recent Articles")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -332,12 +335,12 @@ export default function ArticleDetail() {
             {/* Call to Action */}
             <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
               <CardContent className="pt-6 text-center space-y-3">
-                <h3 className="text-lg font-semibold">Have Questions?</h3>
+                <h3 className="text-lg font-semibold">{t("detail.haveQuestions", "Have Questions?")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Join our community and get answers from experts
+                  {t("detail.joinCommunity", "Join our community and get answers from experts")}
                 </p>
                 <Button asChild className="w-full">
-                  <Link to="/questions">Ask a Question</Link>
+                  <Link to="/questions">{t("detail.askQuestion", "Ask a Question")}</Link>
                 </Button>
               </CardContent>
             </Card>

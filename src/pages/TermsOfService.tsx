@@ -486,14 +486,14 @@ export default function TermsOfService() {
                   <Phone className="w-5 h-5 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">legal@ifixes.com</p>
+                    <p className="font-medium">dps@ifixes.com.cn</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg">
                   <LinkIcon className="w-5 h-5 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Website</p>
-                    <p className="font-medium">www.ifixes.com</p>
+                    <p className="font-medium">www.ifixes.com.cn</p>
                   </div>
                 </div>
               </div>
@@ -508,7 +508,7 @@ export default function TermsOfService() {
             If you have any questions or concerns about our terms of service, our legal team is here to help.
           </p>
           <a
-            href="mailto:legal@ifixes.com"
+            href="mailto:dps@ifixes.com.cn"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             <Phone className="w-5 h-5" />

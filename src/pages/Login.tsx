@@ -3,9 +3,11 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { supabase } from "@/db/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PageMeta from "@/components/common/PageMeta";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn, UserPlus, Lock, User, Eye, EyeOff, Sparkles, Shield, Zap, Mail } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -15,6 +17,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const from = (location.state as { from?: string })?.from || "/";
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -121,31 +124,31 @@ export default function Login() {
       }
 
       toast({
-        title: "Login Successful",
-        description: "Welcome back!",
+        title: t("auth.loginSuccess", "Login Successful"),
+        description: t("auth.welcomeBack", "Welcome back!"),
       });
 
       navigate(from, { replace: true });
     } catch (error: unknown) {
       console.error("Login failed:", error);
-      let errorMessage = "Invalid username/email or password";
+      let errorMessage = t("auth.invalidCredentials", "Invalid username/email or password");
       
       if (error instanceof Error) {
         if (error.message.includes("Invalid login credentials") || error.message.includes("invalid")) {
-          errorMessage = "Invalid username/email or password, please try again";
+          errorMessage = t("auth.invalidCredentials", "Invalid username/email or password, please try again");
         } else if (error.message.includes("Email not confirmed")) {
-          errorMessage = "Email not verified, please verify your email first";
+          errorMessage = t("auth.emailNotVerified", "Email not verified, please verify your email first");
         } else if (error.message.includes("too many requests")) {
-          errorMessage = "Too many login attempts, please try again later";
+          errorMessage = t("auth.tooManyAttempts", "Too many login attempts, please try again later");
         } else if (error.message.includes("network")) {
-          errorMessage = "Network connection failed, please check your network";
+          errorMessage = t("auth.networkError", "Network connection failed, please check your network");
         } else {
           errorMessage = error.message;
         }
       }
       
       toast({
-        title: "Login Failed",
+        title: t("auth.loginFailed", "Login Failed"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -166,8 +169,8 @@ export default function Login() {
 
     if (!username || !email || !password || !confirmPassword) {
       toast({
-        title: "Error",
-        description: "Please fill in all fields",
+        title: t("auth.error", "Error"),
+        description: t("auth.fillAllFields", "Please fill in all fields"),
         variant: "destructive",
       });
       setLoading(false);
@@ -176,8 +179,8 @@ export default function Login() {
 
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       toast({
-        title: "Error",
-        description: "Username can only contain letters, numbers and underscores",
+        title: t("auth.error", "Error"),
+        description: t("auth.usernameInvalid", "Username can only contain letters, numbers and underscores"),
         variant: "destructive",
       });
       setLoading(false);
@@ -187,8 +190,8 @@ export default function Login() {
     // Validate email format
     if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address",
+        title: t("auth.error", "Error"),
+        description: t("auth.invalidEmail", "Please enter a valid email address"),
         variant: "destructive",
       });
       setLoading(false);
@@ -197,8 +200,8 @@ export default function Login() {
 
     if (password !== confirmPassword) {
       toast({
-        title: "Error",
-        description: "Passwords do not match",
+        title: t("auth.error", "Error"),
+        description: t("auth.passwordMismatch", "Passwords do not match"),
         variant: "destructive",
       });
       setLoading(false);
@@ -207,8 +210,8 @@ export default function Login() {
 
     if (password.length < 6) {
       toast({
-        title: "Error",
-        description: "Password must be at least 6 characters",
+        title: t("auth.error", "Error"),
+        description: t("auth.passwordTooShort", "Password must be at least 6 characters"),
         variant: "destructive",
       });
       setLoading(false);
@@ -235,8 +238,8 @@ export default function Login() {
       }
 
       toast({
-        title: "Registration Successful",
-        description: "Welcome! Redirecting...",
+        title: t("auth.registerSuccess", "Registration Successful"),
+        description: t("auth.welcomeRedirecting", "Welcome! Redirecting..."),
       });
 
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -244,30 +247,30 @@ export default function Login() {
       navigate(from, { replace: true });
     } catch (error: unknown) {
       console.error("Registration failed:", error);
-      let errorMessage = "Registration failed, please try again later";
+      let errorMessage = t("auth.registerFailed", "Registration failed, please try again later");
       
       if (error instanceof Error) {
         if (error.message.includes("already registered") || error.message.includes("User already registered")) {
-          errorMessage = "This email is already registered, please use another email";
+          errorMessage = t("auth.emailAlreadyRegistered", "This email is already registered, please use another email");
         } else if (error.message.includes("23505") || error.message.includes("duplicate key")) {
           if (error.message.includes("username")) {
-            errorMessage = "This username already exists, please use another username";
+            errorMessage = t("auth.usernameExists", "This username already exists, please use another username");
           } else {
-            errorMessage = "This email is already registered, please use another email";
+            errorMessage = t("auth.emailAlreadyRegistered", "This email is already registered, please use another email");
           }
         } else if (error.message.includes("email")) {
-          errorMessage = "Invalid email format or already in use";
+          errorMessage = t("auth.invalidEmail", "Invalid email format or already in use");
         } else if (error.message.includes("weak password")) {
-          errorMessage = "Password is too weak, please use a stronger password";
+          errorMessage = t("auth.weakPassword", "Password is too weak, please use a stronger password");
         } else if (error.message.includes("invalid")) {
-          errorMessage = "Invalid input, please check and try again";
+          errorMessage = t("auth.invalidInput", "Invalid input, please check and try again");
         } else {
           errorMessage = error.message;
         }
       }
       
       toast({
-        title: "Registration Failed",
+        title: t("auth.registerFailedTitle", "Registration Failed"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -278,6 +281,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full flex overflow-hidden bg-background">
+      <PageMeta title="Login" noIndex={true} />
       {/* Left display area - Desktop view */}
       <div className="hidden xl:flex xl:w-1/2 relative bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
         {/* Dynamic background decoration */}
@@ -295,8 +299,8 @@ export default function Login() {
               <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/50">
                 <Sparkles className="w-10 h-10 text-primary-foreground" />
               </div>
-              <h1 className="text-4xl font-bold gradient-text">iFixes Official Platform</h1>
-              <p className="text-lg text-muted-foreground">Log in to obtain more technical information and interact with iFixes online for communication</p>
+              <h1 className="text-4xl font-bold gradient-text">{t("auth.platformTitle", "iFixes Official Platform")}</h1>
+              <p className="text-lg text-muted-foreground">{t("auth.platformDesc", "Log in to obtain more technical information and interact with iFixes online for communication")}</p>
             </div>
 
             {/* Features list */}
@@ -306,8 +310,8 @@ export default function Login() {
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg mb-1">Technical exchange</h3>
-                  <p className="text-sm text-muted-foreground">Online interactive communication technology issues</p>
+                  <h3 className="font-semibold text-lg mb-1">{t("auth.featureTech", "Technical exchange")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("auth.featureTechDesc", "Online interactive communication technology issues")}</p>
                 </div>
               </div>
 
@@ -316,8 +320,8 @@ export default function Login() {
                   <Zap className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg mb-1">Quick response</h3>
-                  <p className="text-sm text-muted-foreground">Quickly respond to problems encountered during product use</p>
+                  <h3 className="font-semibold text-lg mb-1">{t("auth.featureQuick", "Quick response")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("auth.featureQuickDesc", "Quickly respond to problems encountered during product use")}</p>
                 </div>
               </div>
 
@@ -326,8 +330,8 @@ export default function Login() {
                   <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg mb-1">Star-rated Service</h3>
-                  <p className="text-sm text-muted-foreground">Provide high-quality star rated services to members</p>
+                  <h3 className="font-semibold text-lg mb-1">{t("auth.featureStar", "Star-rated Service")}</h3>
+                  <p className="text-sm text-muted-foreground">{t("auth.featureStarDesc", "Provide high-quality star rated services to members")}</p>
                 </div>
               </div>
             </div>
@@ -360,7 +364,7 @@ export default function Login() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <LogIn className="w-4 h-4" />
-                  Login
+                  {t("auth.login", "Login")}
                 </span>
               </button>
               <button
@@ -374,7 +378,7 @@ export default function Login() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <UserPlus className="w-4 h-4" />
-                  Register
+                  {t("auth.register", "Register")}
                 </span>
               </button>
             </div>
@@ -384,14 +388,14 @@ export default function Login() {
               <form onSubmit={handleLogin} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="username" className="text-sm font-medium">
-                    Username or Email
+                    {t("auth.usernameOrEmail", "Username or Email")}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="username"
                       name="username"
-                      placeholder="Enter username or email"
+                      placeholder={t("auth.enterUsernameOrEmail", "Enter username or email")}
                       className="pl-10 h-12"
                       required
                       disabled={loading}
@@ -402,13 +406,13 @@ export default function Login() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-sm font-medium">
-                      Password
+                      {t("auth.password", "Password")}
                     </Label>
                     <Link
                       to="/forgot-password"
                       className="text-xs text-primary hover:underline"
                     >
-                      Forgot Password?
+                      {t("auth.forgotPassword", "Forgot Password?")}
                     </Link>
                   </div>
                   <div className="relative">
@@ -417,7 +421,7 @@ export default function Login() {
                       id="password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter your password"
+                      placeholder={t("auth.enterPassword", "Enter your password")}
                       className="pl-10 pr-10 h-12"
                       required
                       disabled={loading}
@@ -444,12 +448,12 @@ export default function Login() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Logging in...
+                      {t("auth.loggingIn", "Logging in...")}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       <LogIn className="w-5 h-5" />
-                      Sign In
+                      {t("auth.signIn", "Sign In")}
                     </span>
                   )}
                 </Button>
@@ -459,26 +463,26 @@ export default function Login() {
               (<form onSubmit={handleRegister} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="reg-username" className="text-sm font-medium">
-                    Username
+                    {t("auth.username", "Username")}
                   </Label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       id="reg-username"
                       name="username"
-                      placeholder="Enter username"
+                      placeholder={t("auth.enterUsername", "Enter username")}
                       className="pl-10 h-12"
                       required
                       disabled={loading}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Only letters, numbers and underscores allowed
+                    {t("auth.usernameHint", "Only letters, numbers and underscores allowed")}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="reg-email" className="text-sm font-medium">
-                    Email Address
+                    {t("auth.emailAddress", "Email Address")}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -486,14 +490,14 @@ export default function Login() {
                       id="reg-email"
                       name="email"
                       type="email"
-                      placeholder="Enter email address"
+                      placeholder={t("auth.enterEmail", "Enter email address")}
                       className="pl-10 h-12"
                       required
                       disabled={loading}
                     />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Verify your email to upgrade to Silver member
+                    {t("auth.emailHint", "Verify your email to upgrade to Silver member")}
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -506,7 +510,7 @@ export default function Login() {
                       id="reg-password"
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter password (at least 6 characters)"
+                      placeholder={t("auth.enterPasswordMin", "Enter password (at least 6 characters)")}
                       className="pl-10 pr-10 h-12"
                       required
                       disabled={loading}
@@ -526,7 +530,7 @@ export default function Login() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-sm font-medium">
-                    Confirm Password
+                    {t("auth.confirmPassword", "Confirm Password")}
                   </Label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -560,12 +564,12 @@ export default function Login() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Registering...
+                      {t("auth.registering", "Registering...")}
                     </span>
                   ) : (
                     <span className="flex items-center gap-2">
                       <UserPlus className="w-5 h-5" />
-                      Create Account
+                      {t("auth.createAccount", "Create Account")}
                     </span>
                   )}
                 </Button>
@@ -575,19 +579,19 @@ export default function Login() {
 
           {/* Bottom notice */}
           <p className="text-center text-sm text-muted-foreground">
-            By signing in, you agree to our
+            {t("auth.agreeNotice", "By signing in, you agree to our")}
             <Link 
               to="/terms" 
               className="text-primary hover:underline cursor-pointer mx-1"
             >
-              Terms of Service
+              {t("auth.termsOfService", "Terms of Service")}
             </Link>
-            and
+            {t("auth.and", "and")}
             <Link 
               to="/privacy" 
               className="text-primary hover:underline cursor-pointer ml-1"
             >
-              Privacy Policy
+              {t("auth.privacyPolicy", "Privacy Policy")}
             </Link>
           </p>
         </div>

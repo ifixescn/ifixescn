@@ -1275,7 +1275,7 @@ export async function searchContent(keyword: string) {
     articles: Array.isArray(articles) ? articles as ArticleWithAuthor[] : [],
     products: Array.isArray(products) ? products.map(p => ({
       ...p,
-      images: Array.isArray(p.images) ? p.images.sort((a, b) => a.sort_order - b.sort_order) : []
+      images: Array.isArray(p.images) ? p.images.sort((a: { sort_order: number }, b: { sort_order: number }) => a.sort_order - b.sort_order) : []
     })) as ProductWithImages[] : [],
     questions: Array.isArray(questions) ? questions.map(q => ({
       ...q,
@@ -3276,8 +3276,10 @@ export async function recordPageView(data: {
   os?: string;
   ip_address?: string;
   country?: string;
+  country_code?: string;
   region?: string;
   city?: string;
+  isp?: string;
 }) {
   const { data: result, error } = await supabase.rpc("record_page_view", {
     p_visitor_id: data.visitor_id,
@@ -3293,6 +3295,8 @@ export async function recordPageView(data: {
     p_country: data.country || null,
     p_region: data.region || null,
     p_city: data.city || null,
+    p_isp: data.isp || null,
+    p_country_code: data.country_code || null,
   });
 
   if (error) throw error;
@@ -3334,6 +3338,36 @@ export async function getTopPages(limit: number = 10, days: number = 7) {
 export async function getLocationStats(days: number = 7) {
   const { data, error } = await supabase.rpc("get_location_stats", {
     p_days: days,
+  });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+// Get国家级统计排行
+export async function getCountryStats(days: number = 7) {
+  const { data, error } = await supabase.rpc("get_country_stats", {
+    p_days: days,
+  });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+// Get ISP 分布统计
+export async function getIspStats(days: number = 7) {
+  const { data, error } = await supabase.rpc("get_isp_stats", {
+    p_days: days,
+  });
+
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+// Get带完整 IP 信息的最近访问记录
+export async function getRecentViewsWithIp(limit: number = 50) {
+  const { data, error } = await supabase.rpc("get_recent_views_with_ip", {
+    p_limit: limit,
   });
 
   if (error) throw error;

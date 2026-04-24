@@ -53,7 +53,7 @@ import WeChatConfigManage from './pages/admin/WeChatConfigManage';
 import Yiyuan from './pages/Yiyuan';
 import YiyuanManage from './pages/admin/YiyuanManage';
 import DatabaseExport from './pages/admin/DatabaseExport';
-
+import LanguageSettings from './pages/admin/LanguageSettings';
 
 export interface RouteConfig {
   name: string;
@@ -348,6 +348,11 @@ const routes: RouteConfig[] = [
         name: 'Database Export',
         path: 'database-export',
         element: <DatabaseExport />
+      },
+      {
+        name: 'Language Settings',
+        path: 'language-settings',
+        element: <LanguageSettings />
       },
       {
         name: 'Site Settings',

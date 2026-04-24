@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "@/contexts/TranslationContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ export default function ProfileSettingsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<ProfileSettingsFormData>({
@@ -51,8 +53,8 @@ export default function ProfileSettingsPage() {
     } catch (error) {
       console.error("Failed to load settings:", error);
       toast({
-        title: "Error",
-        description: "Failed to load settings",
+        title: t("auth.error", "Error"),
+        description: t("member.failedLoadSettings", "Failed to load settings"),
         variant: "destructive",
       });
     } finally {
@@ -67,14 +69,14 @@ export default function ProfileSettingsPage() {
       setSaving(true);
       await updateProfileSettings(user.id, settings);
       toast({
-        title: "Success",
-        description: "Profile settings saved successfully",
+        title: t("auth.success", "Success"),
+        description: t("member.profileSettingsSaved", "Profile settings saved successfully"),
       });
     } catch (error) {
       console.error("Failed to save settings:", error);
       toast({
-        title: "Error",
-        description: "Failed to save settings",
+        title: t("auth.error", "Error"),
+        description: t("member.failedSaveSettings", "Failed to save settings"),
         variant: "destructive",
       });
     } finally {
@@ -96,22 +98,22 @@ export default function ProfileSettingsPage() {
   const getVisibilityLabel = (visibility: ProfileVisibility) => {
     switch (visibility) {
       case "public":
-        return "Public";
+        return t("member.visibilityPublic", "Public");
       case "friends":
-        return "Friends Only";
+        return t("member.visibilityFriends", "Friends Only");
       case "private":
-        return "Private";
+        return t("member.visibilityPrivate", "Private");
     }
   };
 
   const getVisibilityDescription = (visibility: ProfileVisibility) => {
     switch (visibility) {
       case "public":
-        return "Everyone can view your profile";
+        return t("member.visibilityPublicDesc", "Everyone can view your profile");
       case "friends":
-        return "Only your friends can view your profile";
+        return t("member.visibilityFriendsDesc", "Only your friends can view your profile");
       case "private":
-        return "Only you can view your profile";
+        return t("member.visibilityPrivateDesc", "Only you can view your profile");
     }
   };
 
@@ -126,9 +128,9 @@ export default function ProfileSettingsPage() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Profile Settings</h1>
+        <h1 className="text-3xl font-bold mb-2">{t("member.profileSettings", "Profile Settings")}</h1>
         <p className="text-muted-foreground">
-          Manage your profile visibility and display preferences
+          {t("member.profileSettingsDesc", "Manage your profile visibility and display preferences")}
         </p>
       </div>
 
@@ -136,14 +138,14 @@ export default function ProfileSettingsPage() {
         {/* Access Control Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Access Control</CardTitle>
+            <CardTitle>{t("member.accessControl", "Access Control")}</CardTitle>
             <CardDescription>
-              Control who can view your profile
+              {t("member.accessControlDesc", "Control who can view your profile")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Profile Visibility</Label>
+              <Label>{t("member.profileVisibility", "Profile Visibility")}</Label>
               <Select
                 value={settings.profile_visibility}
                 onValueChange={(value: ProfileVisibility) =>
@@ -181,9 +183,9 @@ export default function ProfileSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Show Email Address</Label>
+                <Label>{t("member.showEmail", "Show Email Address")}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Display email address on your profile
+                  {t("member.showEmailDesc", "Display email address on your profile")}
                 </p>
               </div>
               <Switch
@@ -199,17 +201,17 @@ export default function ProfileSettingsPage() {
         {/* Content Display Settings */}
         <Card>
           <CardHeader>
-            <CardTitle>Content Display</CardTitle>
+            <CardTitle>{t("member.contentDisplay", "Content Display")}</CardTitle>
             <CardDescription>
-              Choose what content to display on your profile
+              {t("member.contentDisplayDesc", "Choose what content to display on your profile")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Show Articles</Label>
+                <Label>{t("member.showArticles", "Show Articles")}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Display published articles on your profile
+                  {t("member.showArticlesDesc", "Display published articles on your profile")}
                 </p>
               </div>
               <Switch
@@ -222,9 +224,9 @@ export default function ProfileSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Show Q&A</Label>
+                <Label>{t("member.showQA", "Show Q&A")}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Display your questions and answers on your profile
+                  {t("member.showQADesc", "Display your questions and answers on your profile")}
                 </p>
               </div>
               <Switch
@@ -237,9 +239,9 @@ export default function ProfileSettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Show SNS Posts</Label>
+                <Label>{t("member.showSNS", "Show SNS Posts")}</Label>
                 <p className="text-sm text-muted-foreground">
-                  Display SNS posts on your profile
+                  {t("member.showSNSDesc", "Display SNS posts on your profile")}
                 </p>
               </div>
               <Switch
@@ -259,15 +261,15 @@ export default function ProfileSettingsPage() {
             onClick={() => navigate(`/profile/${user?.id}`)}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
-            Preview Profile
+            {t("member.previewProfile", "Preview Profile")}
           </Button>
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/member-center")}>
-              Cancel
+              {t("member.cancel", "Cancel")}
             </Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Save Settings
+              {t("member.saveSettings", "Save Settings")}
             </Button>
           </div>
         </div>

@@ -9,10 +9,14 @@ import type { QuestionWithAnswers, Category, ProductWithImages } from "@/types";
 import { ArrowLeft, MessageCircle, CheckCircle, Send, FolderOpen, Clock, TrendingUp } from "lucide-react";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
 import RichTextEditor from "@/components/common/RichTextEditor";
+import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function QuestionDetail() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [question, setQuestion] = useState<QuestionWithAnswers | null>(null);
@@ -72,7 +76,7 @@ export default function QuestionDetail() {
     } catch (error) {
       console.error("Failed to load question:", error);
       toast({
-        title: "Load failed",
+        title: t("detail.videoLoadFailed", "Load failed"),
         description: "Unable to load question details",
         variant: "destructive",
       });
@@ -84,7 +88,7 @@ export default function QuestionDetail() {
   const handleSubmitAnswer = async () => {
     if (!currentUser) {
       toast({
-        title: "Login required",
+        title: t("detail.loginRequired", "Login required"),
         description: "Please login before answering questions",
         variant: "destructive",
       });
@@ -105,11 +109,10 @@ export default function QuestionDetail() {
     try {
       await answerQuestion(id!, answerContent, currentUser.id);
       toast({
-        title: "Answer submitted",
+        title: t("detail.submitAnswer", "Answer submitted"),
         description: "Your submission has been received and is pending administrator approval. Thank you for your support!",
       });
       setAnswerContent("");
-      // Reload question to display new answer
       await loadQuestion();
     } catch (error: any) {
       console.error("Failed to submit answer:", error);
@@ -134,9 +137,9 @@ export default function QuestionDetail() {
   if (!question) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <h1 className="text-2xl font-bold">Question not found</h1>
+        <h1 className="text-2xl font-bold">{t("detail.questionNotFound", "Question not found")}</h1>
         <Button asChild>
-          <Link to="/questions">Back to Q&A List</Link>
+          <Link to="/questions">{t("detail.backToQA", "Back to Q&A List")}</Link>
         </Button>
       </div>
     );
@@ -152,11 +155,41 @@ export default function QuestionDetail() {
         author={question.author?.username || undefined}
         publishedTime={question.created_at}
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Q&A", "item": `${window.location.origin}/questions` },
+              { "@type": "ListItem", "position": 3, "name": question.title, "item": window.location.href }
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "QAPage",
+            "name": question.title,
+            "description": (question.content || question.title)?.replace(/<[^>]*>/g, '').substring(0, 160),
+            "url": window.location.href,
+            "mainEntity": {
+              "@type": "Question",
+              "name": question.title,
+              "text": (question.content || question.title)?.replace(/<[^>]*>/g, ''),
+              "answerCount": question.answers?.length || 0,
+              "dateCreated": question.created_at,
+              "author": { "@type": "Person", "name": question.author?.username || "Anonymous" }
+            }
+          })}
+        </script>
+      </Helmet>
       <div className="container mx-auto max-w-7xl">
         <Button variant="ghost" className="mb-6" asChild>
           <Link to="/questions">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to List
+            {t("detail.backToList", "Back to List")}
           </Link>
         </Button>
 
@@ -225,7 +258,7 @@ export default function QuestionDetail() {
                 ))}
                 {latestAnsweredQuestions.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No answered questions yet
+                    {t("detail.noAnsweredQuestions", "No answered questions yet")}
                   </p>
                 )}
               </CardContent>
@@ -269,7 +302,7 @@ export default function QuestionDetail() {
                 ))}
                 {latestProducts.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No products yet
+                    {t("detail.noProductsYet", "No products yet")}
                   </p>
                 )}
               </CardContent>
@@ -289,7 +322,7 @@ export default function QuestionDetail() {
                       </Badge>
                     </Link>
                   )}
-                  <Badge variant="outline">{question.answer_count || 0} Answers</Badge>
+                  <Badge variant="outline">{question.answer_count || 0} {t("detail.answers", "Answers")}</Badge>
                 </div>
                 <CardTitle className="text-3xl">{question.title}</CardTitle>
               </CardHeader>
@@ -299,7 +332,7 @@ export default function QuestionDetail() {
                   dangerouslySetInnerHTML={{ __html: question.content }} 
                 />
                 <div className="text-sm text-muted-foreground">
-                  Asked by: {question.author?.username || question.guest_name || "Anonymous"}
+                  {t("detail.askedBy", "Asked by:")} <TranslatedText text={question.author?.username || question.guest_name || t("detail.anonymous", "Anonymous")} />
                 </div>
               </CardContent>
             </Card>
@@ -308,7 +341,7 @@ export default function QuestionDetail() {
             <div className="space-y-4 mb-6">
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <MessageCircle className="h-6 w-6 text-primary" />
-                Answers ({question.answer_count || 0})
+                {t("detail.answers", "Answers")} ({question.answer_count || 0})
               </h2>
               {question.answers && question.answers.length > 0 ? (
                 question.answers.map(answer => (
@@ -317,7 +350,7 @@ export default function QuestionDetail() {
                       {answer.is_accepted && (
                         <Badge className="mb-2" variant="default">
                           <CheckCircle className="h-3 w-3 mr-1" />
-                          Accepted
+                          {t("detail.accepted", "Accepted")}
                         </Badge>
                       )}
                       <div 
@@ -325,7 +358,7 @@ export default function QuestionDetail() {
                         dangerouslySetInnerHTML={{ __html: answer.content }} 
                       />
                       <div className="text-sm text-muted-foreground">
-                        Answered by: {answer.author?.username || "Anonymous"}
+                        {t("detail.answeredBy", "Answered by:")} <TranslatedText text={answer.author?.username || t("detail.anonymous", "Anonymous")} />
                       </div>
                     </CardContent>
                   </Card>
@@ -333,7 +366,7 @@ export default function QuestionDetail() {
               ) : (
                 <Card>
                   <CardContent className="pt-6 text-center text-muted-foreground">
-                    No answers yet. Be the first to answer!
+                    {t("detail.noAnswersYet", "No answers yet. Be the first to answer!")}
                   </CardContent>
                 </Card>
               )}
@@ -342,13 +375,13 @@ export default function QuestionDetail() {
             {/* Answer Form */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Your Answer</CardTitle>
+                <CardTitle className="text-xl">{t("detail.yourAnswer", "Your Answer")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <RichTextEditor
                   value={answerContent}
                   onChange={setAnswerContent}
-                  placeholder={currentUser ? "Enter your answer..." : "Please login to answer this question"}
+                  placeholder={currentUser ? t("detail.answerPlaceholder", "Enter your answer...") : t("detail.answerPlaceholderGuest", "Please login to answer this question")}
                   requireMemberForMedia={true}
                 />
                 <div className="flex justify-end">
@@ -357,14 +390,14 @@ export default function QuestionDetail() {
                     disabled={!currentUser || submitting || !answerContent.trim()}
                   >
                     <Send className="mr-2 h-4 w-4" />
-                    {submitting ? "Submitting..." : "Submit Answer"}
+                    {submitting ? t("detail.submitting", "Submitting...") : t("detail.submitAnswer", "Submit Answer")}
                   </Button>
                 </div>
                 {!currentUser && (
                   <p className="text-sm text-muted-foreground text-center">
-                    You need to login to answer questions.
+                    {t("detail.loginToAnswer", "You need to login to answer questions.")}
                     <Button variant="link" className="px-1" asChild>
-                      <Link to="/login">Login Now</Link>
+                      <Link to="/login">{t("detail.loginNow", "Login Now")}</Link>
                     </Button>
                   </p>
                 )}

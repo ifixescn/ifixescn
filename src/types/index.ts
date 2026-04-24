@@ -736,8 +736,10 @@ export interface PageView {
   os: string | null;
   ip_address: string | null;
   country: string | null;
+  country_code: string | null;
   region: string | null;
   city: string | null;
+  isp: string | null;
   session_id: string;
   duration: number;
   created_at: string;
@@ -781,8 +783,23 @@ export interface TopPage {
 
 export interface LocationStats {
   country: string;
+  country_code: string;
   region: string;
   city: string;
+  view_count: number;
+  unique_visitors: number;
+}
+
+export interface CountryStats {
+  country: string;
+  country_code: string;
+  view_count: number;
+  unique_visitors: number;
+  percentage: number;
+}
+
+export interface IspStats {
+  isp: string;
   view_count: number;
   unique_visitors: number;
 }

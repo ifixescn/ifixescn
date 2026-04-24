@@ -14,12 +14,14 @@ import {
   getUnreadNotificationCount,
 } from "@/db/api";
 import type { Notification } from "@/types";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 interface NotificationsTabProps {
   userId: string;
 }
 
 export default function NotificationsTab({ userId }: NotificationsTabProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,14 +85,14 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
       );
       setUnreadCount(0);
       toast({
-        title: "Success",
-        description: "All notifications marked as read",
+        title: t("auth.success", "Success"),
+        description: t("member.allMarkedRead", "All notifications marked as read"),
       });
     } catch (error) {
       console.error("Failed to mark all as read:", error);
       toast({
-        title: "Error",
-        description: "Operation failed",
+        title: t("auth.error", "Error"),
+        description: t("member.operationFailed", "Operation failed"),
         variant: "destructive",
       });
     }
@@ -102,35 +104,35 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
       setNotifications(notifications.filter((notif) => notif.id !== notificationId));
       loadUnreadCount();
       toast({
-        title: "Success",
-        description: "Notification deleted",
+        title: t("auth.success", "Success"),
+        description: t("member.notificationDeleted", "Notification deleted"),
       });
     } catch (error) {
       console.error("Failed to delete notification:", error);
       toast({
-        title: "Error",
-        description: "Failed to delete",
+        title: t("auth.error", "Error"),
+        description: t("member.failedDelete", "Failed to delete"),
         variant: "destructive",
       });
     }
   };
 
   const handleClearAll = async () => {
-    if (!confirm("Are you sure you want to clear all notifications?")) return;
+    if (!confirm(t("member.confirmClearNotifications", "Are you sure you want to clear all notifications?"))) return;
 
     try {
       await clearAllNotifications(userId);
       setNotifications([]);
       setUnreadCount(0);
       toast({
-        title: "Success",
-        description: "All notifications cleared",
+        title: t("auth.success", "Success"),
+        description: t("member.allNotificationsCleared", "All notifications cleared"),
       });
     } catch (error) {
       console.error("Failed to clear all notifications:", error);
       toast({
-        title: "Error",
-        description: "Failed to clear",
+        title: t("auth.error", "Error"),
+        description: t("member.failedClear", "Failed to clear"),
         variant: "destructive",
       });
     }
@@ -153,13 +155,13 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
 
   const getNotificationTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      message: "Message",
-      follow: "Follow",
-      like: "Like",
-      comment: "Comment",
-      system: "System",
+      message: t("member.notifTypeMessage", "Message"),
+      follow: t("member.notifTypeFollow", "Follow"),
+      like: t("member.notifTypeLike", "Like"),
+      comment: t("member.notifTypeComment", "Comment"),
+      system: t("member.notifTypeSystem", "System"),
     };
-    return labels[type] || "Notifications";
+    return labels[type] || t("member.notifications", "Notifications");
   };
 
   if (loading) {
@@ -178,24 +180,24 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Notification Center</CardTitle>
+              <CardTitle>{t("member.notificationCenter", "Notification Center")}</CardTitle>
               <CardDescription>
                 {unreadCount > 0
-                  ? `You have ${unreadCount} unread notifications`
-                  : "All notifications read"}
+                  ? `${t("member.youHave", "You have")} ${unreadCount} ${t("member.unreadNotifications", "unread notifications")}`
+                  : t("member.allNotificationsRead", "All notifications read")}
               </CardDescription>
             </div>
             <div className="flex gap-2">
               {unreadCount > 0 && (
                 <Button variant="outline" size="sm" onClick={handleMarkAllAsRead}>
                   <Check className="h-4 w-4 mr-2" />
-                  Mark All Read
+                  {t("member.markAllRead", "Mark All Read")}
                 </Button>
               )}
               {notifications.length > 0 && (
                 <Button variant="outline" size="sm" onClick={handleClearAll}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Clear All
+                  {t("member.clearAll", "Clear All")}
                 </Button>
               )}
             </div>
@@ -205,7 +207,7 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
           {notifications.length === 0 ? (
             <div className="text-center py-12">
               <Bell className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">No notifications yet</p>
+              <p className="text-muted-foreground">{t("member.noNotificationsYet", "No notifications yet")}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -228,7 +230,7 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
                           {getNotificationTypeLabel(notification.type)}
                         </Badge>
                         {!notification.is_read && (
-                          <Badge variant="destructive">Unread</Badge>
+                          <Badge variant="destructive">{t("member.unread", "Unread")}</Badge>
                         )}
                         <span className="text-xs text-muted-foreground ml-auto">
                           {format(
@@ -248,7 +250,7 @@ export default function NotificationsTab({ userId }: NotificationsTabProps) {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleMarkAsRead(notification.id)}
-                          title="Mark as read"
+                          title={t("member.markAsRead", "Mark as read")}
                         >
                           <Check className="h-4 w-4" />
                         </Button>

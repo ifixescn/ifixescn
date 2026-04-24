@@ -13,10 +13,13 @@ import {
 } from "@/components/ui/pagination";
 import { getProducts, getCategories } from "@/db/api";
 import type { ProductWithImages, Category } from "@/types";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 import { Package, FolderOpen, Sparkles } from "lucide-react";
 import PageMeta from "@/components/common/PageMeta";
 
 export default function Products() {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [recommendedProducts, setRecommendedProducts] = useState<ProductWithImages[]>([]);
@@ -118,9 +121,9 @@ export default function Products() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-3">
             <Package className="h-10 w-10 text-primary" />
-            Product Showcase
+            {t("products.title", "Product Showcase")}
           </h1>
-          <p className="text-muted-foreground text-lg">Discover quality products to meet your needs</p>
+          <p className="text-muted-foreground text-lg">{t("products.browseAll", "Discover quality products to meet your needs")}</p>
         </div>
 
         <div className="flex flex-col xl:flex-row gap-6">
@@ -131,19 +134,19 @@ export default function Products() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <FolderOpen className="h-5 w-5" />
-                  Product Categories
+                  {t("products.categories", "Product Categories")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
                 <Link to="/products">
                   <Button variant="ghost" className="w-full justify-start text-sm">
-                    All Products
+                    {t("products.allProducts", "All Products")}
                   </Button>
                 </Link>
                 {categories.map(category => (
                   <Link key={category.id} to={`/products/category/${category.id}`}>
                     <Button variant="ghost" className="w-full justify-start text-sm">
-                      {category.name}
+                      <TranslatedText text={category.name} />
                     </Button>
                   </Link>
                 ))}
@@ -155,7 +158,7 @@ export default function Products() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Sparkles className="h-5 w-5" />
-                  Recommended
+                  {t("products.relatedProducts", "Recommended")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -177,7 +180,7 @@ export default function Products() {
                       )}
                       <div>
                         <p className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors text-center">
-                          {product.name}
+                          <TranslatedText text={product.name} />
                         </p>
                       </div>
                     </div>
@@ -185,7 +188,7 @@ export default function Products() {
                 ))}
                 {recommendedProducts.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No products yet
+                    {t("products.noProducts", "No products yet")}
                   </p>
                 )}
               </CardContent>
@@ -209,7 +212,7 @@ export default function Products() {
                     )}
                     <CardHeader className="p-2 xl:p-4">
                       <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors text-xs xl:text-base text-center">
-                        {product.name}
+                        <TranslatedText text={product.name} />
                       </CardTitle>
                     </CardHeader>
                   </Card>
@@ -220,7 +223,7 @@ export default function Products() {
             {products.length === 0 && !loading && (
               <Card>
                 <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No products yet</p>
+                  <p className="text-muted-foreground">{t("products.noProducts", "No products yet")}</p>
                 </CardContent>
               </Card>
             )}

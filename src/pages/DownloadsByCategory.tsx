@@ -6,10 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { getDownloadsByCategory, getCategoryById, getSiteSetting } from "@/db/api";
 import type { Download, Category } from "@/types";
 import { Download as DownloadIcon, Calendar, ArrowLeft } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function DownloadsByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t } = useTranslation();
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [siteName, setSiteName] = useState("");
@@ -54,12 +58,35 @@ export default function DownloadsByCategory() {
         description={category?.description || `Browse ${category?.name || 'downloads'}`}
         keywords={category?.seo_keywords || category?.name || 'downloads'}
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Downloads", "item": `${window.location.origin}/downloads` },
+              { "@type": "ListItem", "position": 3, "name": category?.name || "Downloads", "item": window.location.href }
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": category?.name,
+            "description": category?.description || `Browse ${category?.name} downloads`,
+            "url": window.location.href,
+            "isPartOf": { "@type": "WebSite", "name": siteName || "iFixes", "url": window.location.origin }
+          })}
+        </script>
+      </Helmet>
       <div className="container mx-auto max-w-6xl">
         <div className="mb-8">
           <Button variant="ghost" asChild className="mb-4">
             <Link to="/downloads">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Download List
+              {t("cat.backToDownloadList", "Back to Download List")}
             </Link>
           </Button>
           
@@ -78,7 +105,7 @@ export default function DownloadsByCategory() {
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{downloads.length} downloads</span>
+            <span>{downloads.length} {t("cat.downloadsCount", "downloads")}</span>
           </div>
         </div>
 
@@ -86,7 +113,7 @@ export default function DownloadsByCategory() {
           <Card>
             <CardContent className="py-12 text-center">
               <DownloadIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No downloads in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noDownloads", "No downloads in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (

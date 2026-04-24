@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PageMeta from "@/components/common/PageMeta";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -10,9 +11,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import type { Download, Category, ModuleSetting } from "@/types";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function DownloadDetail() {
   const { id } = useParams<{ id: string }>();
+  const { t } = useTranslation();
   const [download, setDownload] = useState<Download | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
   const [moduleSetting, setModuleSetting] = useState<ModuleSetting | null>(null);
@@ -51,7 +55,7 @@ export default function DownloadDetail() {
     } catch (error) {
       console.error("Failed to load data:", error);
       toast({
-        title: "Loading failed",
+        title: t("detail.videoLoadFailed", "Loading failed"),
         description: "Failed to load download details",
         variant: "destructive",
       });
@@ -67,8 +71,8 @@ export default function DownloadDetail() {
     const requireLogin = moduleSetting?.custom_settings?.require_login_to_download === true;
     if (requireLogin && !profile) {
       toast({
-        title: "Login Required",
-        description: "Please login before downloading",
+        title: t("detail.loginRequired", "Login Required"),
+        description: t("detail.loginBeforeDownload", "Please login before downloading"),
         variant: "destructive",
       });
       navigate("/login");
@@ -79,8 +83,8 @@ export default function DownloadDetail() {
     if (download.require_member) {
       if (!profile) {
         toast({
-          title: "Login Required",
-          description: "Please login before downloading",
+          title: t("detail.loginRequired", "Login Required"),
+          description: t("detail.loginBeforeDownload", "Please login before downloading"),
           variant: "destructive",
         });
         navigate("/login");
@@ -89,8 +93,8 @@ export default function DownloadDetail() {
 
       if (profile.member_level === "guest") {
         toast({
-          title: "Member Required",
-          description: "This resource is for members only. Please upgrade your membership.",
+          title: t("detail.memberRequired", "Member Required"),
+          description: t("detail.upgradeToDownload", "This resource is for members only. Please upgrade your membership."),
           variant: "destructive",
         });
         return;
@@ -105,8 +109,8 @@ export default function DownloadDetail() {
       window.open(download.file_url, "_blank");
 
       toast({
-        title: "Download Started",
-        description: "File download has started",
+        title: t("detail.downloadStarted", "Download Started"),
+        description: t("detail.downloadStartedDesc", "File download has started"),
       });
 
       // Refresh data to update download count
@@ -114,8 +118,8 @@ export default function DownloadDetail() {
     } catch (error) {
       console.error("Download failed:", error);
       toast({
-        title: "Download Failed",
-        description: "Unable to download file, please try again",
+        title: t("detail.downloadFailed", "Download Failed"),
+        description: t("detail.downloadFailedDesc", "Unable to download file, please try again"),
         variant: "destructive",
       });
     }
@@ -150,7 +154,7 @@ export default function DownloadDetail() {
       <div className="container mx-auto px-4 py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>Download resource not found</AlertDescription>
+        <AlertDescription>{t("detail.downloadNotFound", "Download resource not found")}</AlertDescription>
         </Alert>
       </div>
     );
@@ -161,6 +165,12 @@ export default function DownloadDetail() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
+        <PageMeta
+          title={download.title}
+          description={download.description || `Download ${download.title} - iFixes repair resource`}
+          keywords={`download, ${download.title}, repair tool, iFixes`}
+          type="website"
+        />
         <Card>
           <CardHeader>
             <div className="flex items-start justify-between mb-4">
@@ -171,7 +181,7 @@ export default function DownloadDetail() {
                     <Badge variant="secondary">{category.name}</Badge>
                   )}
                   {download.require_member && (
-                    <Badge variant="default">Members Only</Badge>
+                    <Badge variant="default">{t("detail.membersOnly", "Members Only")}</Badge>
                   )}
                 </div>
               </div>
@@ -192,7 +202,7 @@ export default function DownloadDetail() {
               </div>
               <div className="flex items-center gap-1">
                 <DownloadIcon className="h-4 w-4" />
-                <span>{download.download_count} downloads</span>
+                <span>{download.download_count} {t("detail.downloads", "downloads")}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -207,26 +217,20 @@ export default function DownloadDetail() {
               <Alert className="mb-6">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  This resource requires member permission to download.
+                  {t("detail.memberPermission", "This resource requires member permission to download.")}
                   {!profile ? (
                     <>
-                      {" "}Please{" "}
+                      {" "}{t("detail.loginOrRegister", "Please login or register a member account.")}{" "}
                       <Link to="/login" className="text-primary underline mx-1">
-                        login
+                        {t("auth.login", "login")}
                       </Link>
-                      or
-                      <Link to="/login" className="text-primary underline mx-1">
-                        register
-                      </Link>
-                      a member account.
                     </>
                   ) : (
                     <>
-                      {" "}Please{" "}
+                      {" "}{t("detail.loginOrRegister", "Please")}{" "}
                       <Link to="/profile" className="text-primary underline mx-1">
-                        upgrade to member
+                        {t("detail.upgradeToMember", "upgrade to member")}
                       </Link>
-                      to download.
                     </>
                   )}
                 </AlertDescription>
@@ -250,7 +254,7 @@ export default function DownloadDetail() {
                 className="min-w-[200px]"
               >
                 <DownloadIcon className="mr-2 h-5 w-5" />
-                {canDownload ? "Download Now" : "Member Required"}
+                {canDownload ? t("detail.downloadNow", "Download Now") : t("detail.memberRequired", "Member Required")}
               </Button>
             </div>
           </CardContent>

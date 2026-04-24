@@ -1,3 +1,4 @@
+import { useTranslation } from "@/contexts/TranslationContext";
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +23,7 @@ export default function MessagesPage() {
   const { userId: otherUserId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<DirectMessageWithProfiles[]>([]);
   const [conversations, setConversations] = useState<DirectMessageWithProfiles[]>([]);
   const [otherUser, setOtherUser] = useState<Profile | null>(null);
@@ -123,9 +125,9 @@ export default function MessagesPage() {
         <Card>
           <CardContent className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">请先登录</h2>
+              <h2 className="text-2xl font-bold mb-2">{t("auth.pleaseLogin", "请先登录")}</h2>
               <Button asChild>
-                <Link to="/login">前往登录</Link>
+                <Link to="/login">{t("auth.goLogin", "前往登录")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -163,11 +165,11 @@ export default function MessagesPage() {
             <ScrollArea className="h-[500px] pr-4 mb-4">
               {loading ? (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">加载中...</p>
+                  <p className="text-muted-foreground">{t("member.loading", "加载中...")}</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-muted-foreground">暂无消息</p>
+                  <p className="text-muted-foreground">{t("member.noMessages", "暂无消息")}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -209,7 +211,7 @@ export default function MessagesPage() {
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="输入消息..."
+                placeholder={t("member.enterMessage", "输入消息...")}
                 disabled={sending}
               />
               <Button type="submit" disabled={sending || !newMessage.trim()}>
@@ -238,16 +240,16 @@ export default function MessagesPage() {
     <div className="container mx-auto px-4 py-8">
       <Card>
         <CardHeader>
-          <CardTitle>站内信</CardTitle>
+          <CardTitle>{t("member.inbox", "站内信")}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-muted-foreground">加载中...</p>
+              <p className="text-muted-foreground">{t("member.loading", "加载中...")}</p>
             </div>
           ) : uniqueConversations.length === 0 ? (
             <div className="flex items-center justify-center py-12">
-              <p className="text-muted-foreground">暂无消息</p>
+              <p className="text-muted-foreground">{t("member.noMessages", "暂无消息")}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -278,7 +280,7 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       <p className={`text-sm truncate ${isUnread ? "font-medium" : "text-muted-foreground"}`}>
-                        {msg.sender_id === user.id ? "我: " : ""}
+                        {msg.sender_id === user.id ? t("member.me", "我") + ": " : ""}
                         {msg.content}
                       </p>
                     </div>

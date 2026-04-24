@@ -243,7 +243,7 @@ export function validateFileUpload(file: File, options: {
  */
 export function preventClickjacking(): void {
   if (window.top !== window.self) {
-    window.top!.location = window.self.location;
+    window.top!.location.href = window.self.location.href;
   }
 }
 

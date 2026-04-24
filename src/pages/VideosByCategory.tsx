@@ -6,11 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { getVideosByCategory, getCategoryById, getSiteSetting } from "@/db/api";
 import type { Video, Category } from "@/types";
 import { Video as VideoIcon, Calendar, Clock, ArrowLeft } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 import VideoThumbnail from "@/components/common/VideoThumbnail";
 
 export default function VideosByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t } = useTranslation();
   const [videos, setVideos] = useState<Video[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [siteName, setSiteName] = useState("");
@@ -55,12 +59,35 @@ export default function VideosByCategory() {
         description={category?.description || `Browse ${category?.name || 'videos'}`}
         keywords={category?.seo_keywords || category?.name || 'videos'}
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Videos", "item": `${window.location.origin}/videos` },
+              { "@type": "ListItem", "position": 3, "name": category?.name || "Videos", "item": window.location.href }
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": category?.name,
+            "description": category?.description || `Browse ${category?.name} videos`,
+            "url": window.location.href,
+            "isPartOf": { "@type": "WebSite", "name": siteName || "iFixes", "url": window.location.origin }
+          })}
+        </script>
+      </Helmet>
       <div className="container mx-auto max-w-6xl">
         <div className="mb-8">
           <Button variant="ghost" asChild className="mb-4">
             <Link to="/videos">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Video List
+              {t("cat.backToVideoList", "Back to Video List")}
             </Link>
           </Button>
           
@@ -79,7 +106,7 @@ export default function VideosByCategory() {
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{videos.length} videos</span>
+            <span>{videos.length} {t("cat.videosCount", "videos")}</span>
           </div>
         </div>
 
@@ -87,7 +114,7 @@ export default function VideosByCategory() {
           <Card>
             <CardContent className="py-12 text-center">
               <VideoIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No videos in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noVideos", "No videos in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -97,7 +124,7 @@ export default function VideosByCategory() {
                 <div className="aspect-video w-full overflow-hidden bg-muted">
                   <VideoThumbnail
                     videoUrl={video.video_url}
-                    coverImage={video.cover_image}
+                    coverImage={video.cover_image ?? undefined}
                     title={video.title}
                     className="hover:scale-105 transition-transform duration-300"
                   />

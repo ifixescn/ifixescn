@@ -3,15 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/db/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PageMeta from "@/components/common/PageMeta";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function ForgotPassword() {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const handleResetPassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,8 +25,8 @@ export default function ForgotPassword() {
 
     if (!email) {
       toast({
-        title: "Error",
-        description: "Please enter your email address",
+        title: t("auth.error", "Error"),
+        description: t("auth.enterEmailAddress", "Please enter your email address"),
         variant: "destructive",
       });
       setLoading(false);
@@ -33,8 +36,8 @@ export default function ForgotPassword() {
     // 验证邮箱格式
     if (!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address",
+        title: t("auth.error", "Error"),
+        description: t("auth.invalidEmail", "Please enter a valid email address"),
         variant: "destructive",
       });
       setLoading(false);
@@ -50,25 +53,25 @@ export default function ForgotPassword() {
 
       setEmailSent(true);
       toast({
-        title: "Email sent successfully",
-        description: "Please check your email for password reset instructions",
+        title: t("auth.emailSentSuccess", "Email sent successfully"),
+        description: t("auth.checkEmailForReset", "Please check your email for password reset instructions"),
       });
     } catch (error: unknown) {
       console.error("Password reset failed:", error);
-      let errorMessage = "Failed to send reset email, please try again";
+      let errorMessage = t("auth.resetEmailFailed", "Failed to send reset email, please try again");
       
       if (error instanceof Error) {
         if (error.message.includes("rate limit")) {
-          errorMessage = "Too many requests, please try again later";
+          errorMessage = t("auth.tooManyAttempts", "Too many requests, please try again later");
         } else if (error.message.includes("network")) {
-          errorMessage = "Network connection failed, please check your network";
+          errorMessage = t("auth.networkError", "Network connection failed, please check your network");
         } else {
           errorMessage = error.message;
         }
       }
       
       toast({
-        title: "Failed",
+        title: t("auth.failed", "Failed"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -79,6 +82,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center p-4 bg-background">
+      <PageMeta title="Forgot Password" noIndex={true} />
       <div className="w-full max-w-md space-y-8">
         {/* 返回按钮 */}
         <Button
@@ -87,7 +91,7 @@ export default function ForgotPassword() {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Login
+          {t("auth.backToLogin", "Back to Login")}
         </Button>
 
         {/* 表单卡片 */}
@@ -98,16 +102,16 @@ export default function ForgotPassword() {
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                   <Mail className="w-8 h-8 text-primary" />
                 </div>
-                <h1 className="text-2xl font-bold">Forgot Password</h1>
+                <h1 className="text-2xl font-bold">{t("auth.forgotPasswordTitle", "Forgot Password")}</h1>
                 <p className="text-sm text-muted-foreground">
-                  Enter your email address and we'll send you instructions to reset your password
+                  {t("auth.forgotPasswordDesc", "Enter your email address and we'll send you instructions to reset your password")}
                 </p>
               </div>
 
               <form onSubmit={handleResetPassword} className="space-y-5">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-medium">
-                    Email Address
+                    {t("auth.emailAddress", "Email Address")}
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -115,7 +119,7 @@ export default function ForgotPassword() {
                       id="email"
                       name="email"
                       type="email"
-                      placeholder="Enter your email address"
+                      placeholder={t("auth.enterEmailAddress", "Enter your email address")}
                       className="pl-10 h-12"
                       required
                       disabled={loading}
@@ -131,10 +135,10 @@ export default function ForgotPassword() {
                   {loading ? (
                     <span className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Sending...
+                      {t("auth.sending", "Sending...")}
                     </span>
                   ) : (
-                    "Send Reset Instructions"
+                    t("auth.sendResetInstructions", "Send Reset Instructions")
                   )}
                 </Button>
               </form>
@@ -144,17 +148,16 @@ export default function ForgotPassword() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-bold">Check Your Email</h2>
+              <h2 className="text-2xl font-bold">{t("auth.checkYourEmail", "Check Your Email")}</h2>
               <p className="text-sm text-muted-foreground">
-                We've sent password reset instructions to your email address. 
-                Please check your inbox and follow the link to reset your password.
+                {t("auth.resetEmailSentDesc", "We've sent password reset instructions to your email address. Please check your inbox and follow the link to reset your password.")}
               </p>
               <Button
                 variant="outline"
                 onClick={() => navigate("/login")}
                 className="w-full"
               >
-                Back to Login
+                {t("auth.backToLogin", "Back to Login")}
               </Button>
             </div>
           )}

@@ -93,7 +93,7 @@ export default function ProductsManage() {
         name,
         slug,
         description: formDescription,
-        content: formContent || null,
+        content: formContent || undefined,
         price,
         category_id: category_id === "none" ? undefined : category_id,
         status,

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import PageMeta from "@/components/common/PageMeta";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,6 +63,8 @@ import MessagesTab from "@/components/member/MessagesTab";
 import FollowsTab from "@/components/member/FollowsTab";
 import NotificationsTab from "@/components/member/NotificationsTab";
 import ActivityFeed from "@/components/member/ActivityFeed";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 // Helper function to strip HTML tags and get plain text
 const stripHtml = (html: string): string => {
@@ -71,6 +74,7 @@ const stripHtml = (html: string): string => {
 };
 
 export default function MemberCenter() {
+  const { t } = useTranslation();
   const { user, profile, signOut, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -241,11 +245,11 @@ export default function MemberCenter() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />Pending</Badge>;
+        return <Badge variant="outline" className="gap-1"><Clock className="h-3 w-3" />{t("member.statusPending", "Pending")}</Badge>;
       case "approved":
-        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="h-3 w-3" />Approved</Badge>;
+        return <Badge variant="default" className="gap-1 bg-green-600"><CheckCircle className="h-3 w-3" />{t("member.statusApproved", "Approved")}</Badge>;
       case "rejected":
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />Rejected</Badge>;
+        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" />{t("member.statusRejected", "Rejected")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -257,7 +261,7 @@ export default function MemberCenter() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading member center...</p>
+            <p className="text-muted-foreground">{t("member.loading", "Loading member center...")}</p>
           </div>
         </div>
       </div>
@@ -269,7 +273,7 @@ export default function MemberCenter() {
       <div className="container mx-auto py-8">
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Profile not found</p>
+            <p className="text-muted-foreground">{t("member.profileNotFound", "Profile not found")}</p>
           </CardContent>
         </Card>
       </div>
@@ -281,6 +285,7 @@ export default function MemberCenter() {
 
   return (
     <div className="container mx-auto py-8 px-4">
+      <PageMeta title="Member Center" noIndex={true} />
       {/* Header Info */}
       <div className="mb-8">
         <Card className="border-2">
@@ -311,21 +316,21 @@ export default function MemberCenter() {
                   <div className="flex items-center gap-2">
                     <Star className="h-5 w-5 text-yellow-500" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Points</p>
+                      <p className="text-sm text-muted-foreground">{t("member.points", "Points")}</p>
                       <p className="text-lg font-semibold">{profile.points}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageCircle className="h-5 w-5 text-green-500" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Questions</p>
+                      <p className="text-sm text-muted-foreground">{t("member.questions", "Questions")}</p>
                       <p className="text-lg font-semibold">{profile.total_questions}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <MessageSquare className="h-5 w-5 text-purple-500" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Answers</p>
+                      <p className="text-sm text-muted-foreground">{t("member.answers", "Answers")}</p>
                       <p className="text-lg font-semibold">{profile.total_answers}</p>
                     </div>
                   </div>
@@ -335,7 +340,7 @@ export default function MemberCenter() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">
-                        Upgrade to {nextLevel.name}
+                        {t("member.upgradeTo", "Upgrade to")} {nextLevel.name}
                       </span>
                       <span className="font-medium">
                         {profile.points} / {nextLevel.min_points}
@@ -354,7 +359,7 @@ export default function MemberCenter() {
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => signOut()}>
                   <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
+                  {t("member.signOut", "Sign Out")}
                 </Button>
               </div>
             </div>
@@ -367,43 +372,43 @@ export default function MemberCenter() {
         <TabsList className="grid w-full grid-cols-3 xl:grid-cols-10">
           <TabsTrigger value="overview">
             <User className="h-4 w-4 mr-2" />
-            Overview
+            {t("member.overview", "Overview")}
           </TabsTrigger>
           <TabsTrigger value="posts">
             <FileText className="h-4 w-4 mr-2" />
-            Posts
+            {t("member.posts", "Posts")}
           </TabsTrigger>
           <TabsTrigger value="messages">
             <Mail className="h-4 w-4 mr-2" />
-            Messages
+            {t("member.messages", "Messages")}
           </TabsTrigger>
           <TabsTrigger value="follows">
             <Users className="h-4 w-4 mr-2" />
-            Follows
+            {t("member.follows", "Follows")}
           </TabsTrigger>
           <TabsTrigger value="notifications">
             <Bell className="h-4 w-4 mr-2" />
-            Notifications
+            {t("member.notifications", "Notifications")}
           </TabsTrigger>
           <TabsTrigger value="points">
             <Award className="h-4 w-4 mr-2" />
-            Points
+            {t("member.points", "Points")}
           </TabsTrigger>
           <TabsTrigger value="history">
             <History className="h-4 w-4 mr-2" />
-            History
+            {t("member.history", "History")}
           </TabsTrigger>
           <TabsTrigger value="questions">
             <MessageCircle className="h-4 w-4 mr-2" />
-            Questions
+            {t("member.questions", "Questions")}
           </TabsTrigger>
           <TabsTrigger value="answers">
             <MessageSquare className="h-4 w-4 mr-2" />
-            Answers
+            {t("member.answers", "Answers")}
           </TabsTrigger>
           <TabsTrigger value="settings">
             <Settings className="h-4 w-4 mr-2" />
-            Settings
+            {t("member.settings", "Settings")}
           </TabsTrigger>
         </TabsList>
 
@@ -412,8 +417,8 @@ export default function MemberCenter() {
           <div className="grid gap-6 xl:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle>Member Level Benefits</CardTitle>
-                <CardDescription>Your current level privileges</CardDescription>
+                <CardTitle>{t("member.levelBenefits", "Member Level Benefits")}</CardTitle>
+                <CardDescription>{t("member.levelBenefitsDesc", "Your current level privileges")}</CardDescription>
               </CardHeader>
               <CardContent>
                 {currentLevel && (
@@ -450,13 +455,13 @@ export default function MemberCenter() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Recent Submissions</CardTitle>
-                <CardDescription>Your content submission status</CardDescription>
+                <CardTitle>{t("member.recentSubmissions", "Recent Submissions")}</CardTitle>
+                <CardDescription>{t("member.recentSubmissionsDesc", "Your content submission status")}</CardDescription>
               </CardHeader>
               <CardContent>
                 {submissions.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-8">
-                    No submissions yet
+                    {t("member.noSubmissions", "No submissions yet")}
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -467,8 +472,8 @@ export default function MemberCenter() {
                       >
                         <div className="flex-1">
                           <p className="font-medium text-sm capitalize">
-                            {submission.content_type === "article" ? "Article" : 
-                             submission.content_type === "question" ? "Question" : 
+                            {submission.content_type === "article" ? t("member.typeArticle", "Article") : 
+                             submission.content_type === "question" ? t("member.typeQuestion", "Question") : 
                              submission.content_type}
                           </p>
                           <p className="text-xs text-muted-foreground">
@@ -492,12 +497,12 @@ export default function MemberCenter() {
         <TabsContent value="points">
           <Card>
             <CardHeader>
-              <CardTitle>Points History</CardTitle>
-              <CardDescription>Track your points earned and spent</CardDescription>
+              <CardTitle>{t("member.pointsHistory", "Points History")}</CardTitle>
+              <CardDescription>{t("member.pointsHistoryDesc", "Track your points earned and spent")}</CardDescription>
             </CardHeader>
             <CardContent>
               {pointsLog.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No points records yet</p>
+                <p className="text-center text-muted-foreground py-8">{t("member.noPoints", "No points records yet")}</p>
               ) : (
                 <div className="space-y-3">
                   {pointsLog.map((log) => (
@@ -545,19 +550,19 @@ export default function MemberCenter() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Browsing History</CardTitle>
-                <CardDescription>Your recently viewed content</CardDescription>
+                <CardTitle>{t("member.browsingHistory", "Browsing History")}</CardTitle>
+                <CardDescription>{t("member.browsingHistoryDesc", "Your recently viewed content")}</CardDescription>
               </div>
               {browsingHistory.length > 0 && (
                 <Button variant="outline" size="sm" onClick={handleClearHistory}>
                   <Trash2 className="h-4 w-4 mr-2" />
-                  Clear All
+                  {t("member.clearAll", "Clear All")}
                 </Button>
               )}
             </CardHeader>
             <CardContent>
               {browsingHistory.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No browsing history</p>
+                <p className="text-center text-muted-foreground py-8">{t("member.noBrowsingHistory", "No browsing history")}</p>
               ) : (
                 <div className="space-y-3">
                   {browsingHistory.map((history) => (
@@ -571,9 +576,9 @@ export default function MemberCenter() {
                           <p className="font-medium">{history.content_title}</p>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <Badge variant="outline" className="capitalize">
-                              {history.content_type === "article" ? "Article" : 
-                               history.content_type === "product" ? "Product" : 
-                               history.content_type === "question" ? "Q&A" : 
+                              {history.content_type === "article" ? t("member.typeArticle", "Article") : 
+                               history.content_type === "product" ? t("member.typeProduct", "Product") : 
+                               history.content_type === "question" ? t("member.typeQA", "Q&A") : 
                                history.content_type}
                             </Badge>
                             <span>•</span>
@@ -600,12 +605,12 @@ export default function MemberCenter() {
         <TabsContent value="questions">
           <Card>
             <CardHeader>
-              <CardTitle>My Questions</CardTitle>
-              <CardDescription>Your questions</CardDescription>
+              <CardTitle>{t("member.myQuestions", "My Questions")}</CardTitle>
+              <CardDescription>{t("member.myQuestionsDesc", "Your questions")}</CardDescription>
             </CardHeader>
             <CardContent>
               {questions.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No questions yet</p>
+                <p className="text-center text-muted-foreground py-8">{t("member.noQuestions", "No questions yet")}</p>
               ) : (
                 <div className="space-y-3">
                   {questions.map((question) => (
@@ -615,13 +620,15 @@ export default function MemberCenter() {
                       onClick={() => navigate(`/questions/${question.id}`)}
                     >
                       <div className="flex-1">
-                        <h3 className="font-medium">{question.title}</h3>
+                        <h3 className="font-medium">
+                          <TranslatedText text={question.title} />
+                        </h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                           <Calendar className="h-3 w-3" />
                           <span>{format(new Date(question.created_at), "MMM dd, yyyy")}</span>
                           <span>•</span>
                           <MessageSquare className="h-3 w-3" />
-                          <span>{question.answer_count || 0} Answers</span>
+                          <span>{question.answer_count || 0} {t("member.answers_count", "Answers")}</span>
                         </div>
                       </div>
                       {getStatusBadge(question.status)}
@@ -637,12 +644,12 @@ export default function MemberCenter() {
         <TabsContent value="answers">
           <Card>
             <CardHeader>
-              <CardTitle>My Answers</CardTitle>
-              <CardDescription>Your answers</CardDescription>
+              <CardTitle>{t("member.myAnswers", "My Answers")}</CardTitle>
+              <CardDescription>{t("member.myAnswersDesc", "Your answers")}</CardDescription>
             </CardHeader>
             <CardContent>
               {answers.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No answers yet</p>
+                <p className="text-center text-muted-foreground py-8">{t("member.noAnswers", "No answers yet")}</p>
               ) : (
                 <div className="space-y-3">
                   {answers.map((answer) => (
@@ -658,7 +665,7 @@ export default function MemberCenter() {
                         {answer.is_accepted && (
                           <Badge variant="default" className="bg-green-600">
                             <CheckCircle className="h-3 w-3 mr-1" />
-                            Accepted
+                            {t("member.statusAccepted", "Accepted")}
                           </Badge>
                         )}
                       </div>
@@ -695,14 +702,14 @@ export default function MemberCenter() {
         <TabsContent value="settings">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Settings</CardTitle>
-              <CardDescription>Update your personal information</CardDescription>
+              <CardTitle>{t("member.profileSettings", "Profile Settings")}</CardTitle>
+              <CardDescription>{t("member.profileSettingsDesc", "Update your personal information")}</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleUpdateProfile} className="space-y-6">
                 <div className="grid gap-6 xl:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="username">{t("member.username", "Username")}</Label>
                     <Input
                       id="username"
                       name="username"
@@ -712,7 +719,7 @@ export default function MemberCenter() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="nickname">Nickname</Label>
+                    <Label htmlFor="nickname">{t("member.nickname", "Nickname")}</Label>
                     <Input
                       id="nickname"
                       name="nickname"
@@ -721,7 +728,7 @@ export default function MemberCenter() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t("member.email", "Email")}</Label>
                     <Input
                       id="email"
                       name="email"
@@ -731,7 +738,7 @@ export default function MemberCenter() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone">{t("member.phone", "Phone")}</Label>
                     <Input
                       id="phone"
                       name="phone"
@@ -740,7 +747,7 @@ export default function MemberCenter() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
+                    <Label htmlFor="country">{t("member.country", "Country")}</Label>
                     <Input
                       id="country"
                       name="country"
@@ -749,7 +756,7 @@ export default function MemberCenter() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
+                    <Label htmlFor="city">{t("member.city", "City")}</Label>
                     <Input
                       id="city"
                       name="city"
@@ -758,7 +765,7 @@ export default function MemberCenter() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="postal_code">Postal Code</Label>
+                    <Label htmlFor="postal_code">{t("member.postalCode", "Postal Code")}</Label>
                     <Input
                       id="postal_code"
                       name="postal_code"
@@ -768,7 +775,7 @@ export default function MemberCenter() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address</Label>
+                  <Label htmlFor="address">{t("member.address", "Address")}</Label>
                   <Input
                     id="address"
                     name="address"
@@ -777,22 +784,22 @@ export default function MemberCenter() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bio">Bio</Label>
+                  <Label htmlFor="bio">{t("member.bio", "Bio")}</Label>
                   <Textarea
                     id="bio"
                     name="bio"
                     rows={4}
                     defaultValue={profile.bio || ""}
-                    placeholder="Tell us about yourself..."
+                    placeholder={t("member.bioPlaceholder", "Tell us about yourself...")}
                   />
                 </div>
 
                 <div className="flex justify-end gap-3">
                   <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-                    Cancel
+                    {t("member.cancel", "Cancel")}
                   </Button>
                   <Button type="submit" disabled={updating}>
-                    {updating ? "Updating..." : "Update Profile"}
+                    {updating ? t("member.updating", "Updating...") : t("member.updateProfile", "Update Profile")}
                   </Button>
                 </div>
               </form>
@@ -800,16 +807,16 @@ export default function MemberCenter() {
               {/* Profile Settings Link */}
               {["silver", "gold", "premium", "svip"].includes(profile.member_level) && (
                 <div className="mt-6 pt-6 border-t">
-                  <h3 className="text-lg font-semibold mb-2">Profile Settings</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t("member.profileSettings", "Profile Settings")}</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Manage your profile visibility and display preferences
+                    {t("member.profileSettingsLink", "Manage your profile visibility and display preferences")}
                   </p>
                   <Button
                     variant="outline"
                     onClick={() => navigate("/member/profile-settings")}
                   >
                     <Settings className="h-4 w-4 mr-2" />
-                    Profile Settings
+                    {t("member.profileSettings", "Profile Settings")}
                   </Button>
                 </div>
               )}

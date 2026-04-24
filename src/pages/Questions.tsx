@@ -16,6 +16,8 @@ import type { QuestionWithAnswers, Category, ProductWithImages } from "@/types";
 import { ArrowRight, MessageCircle, Plus, FolderOpen, Clock, TrendingUp } from "lucide-react";
 import RichTextEditor from "@/components/common/RichTextEditor";
 import PageMeta from "@/components/common/PageMeta";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 // Helper function to strip HTML tags and get plain text
 const stripHtml = (html: string): string => {
@@ -25,6 +27,7 @@ const stripHtml = (html: string): string => {
 };
 
 export default function Questions() {
+  const { t } = useTranslation();
   const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [latestQuestions, setLatestQuestions] = useState<QuestionWithAnswers[]>([]);
@@ -91,7 +94,7 @@ export default function Questions() {
       await createQuestion({
         title,
         content: questionContent,
-        category_id: categoryId === "none" ? null : categoryId,
+        category_id: categoryId === "none" ? undefined : categoryId,
         author_id: user?.id || null,
         guest_name: !user ? guestName : undefined,
         guest_email: !user ? guestEmail : undefined,
@@ -162,15 +165,15 @@ export default function Questions() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-3">
             <MessageCircle className="h-10 w-10 text-primary" />
-            Q&A Community
+            {t("questions.communityTitle", "Q&A Community")}
           </h1>
-          <p className="text-muted-foreground text-lg mb-6">Participate in discussions, share knowledge, and grow together</p>
+          <p className="text-muted-foreground text-lg mb-6">{t("questions.communityDesc", "Participate in discussions, share knowledge, and grow together")}</p>
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="lg">
                 <Plus className="mr-2 h-5 w-5" />
-                Ask a Question
+                {t("questions.askQuestion", "Ask a Question")}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -271,19 +274,19 @@ export default function Questions() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5" />
-                  Q&A Categories
+                  {t("questions.title", "Q&A Categories")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
                 <Link to="/questions">
                   <Button variant="ghost" className="w-full justify-start">
-                    All Q&A
+                    {t("questions.allCategories", "All Q&A")}
                   </Button>
                 </Link>
                 {categories.map(category => (
                   <Link key={category.id} to={`/questions/category/${category.id}`}>
                     <Button variant="ghost" className="w-full justify-start">
-                      {category.name}
+                      <TranslatedText text={category.name} />
                     </Button>
                   </Link>
                 ))}
@@ -295,7 +298,7 @@ export default function Questions() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Latest Q&A
+                  {t("questions.latest", "Latest Q&A")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -307,11 +310,11 @@ export default function Questions() {
                   >
                     <div>
                       <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                        {question.title}
+                        <TranslatedText text={question.title} />
                       </h4>
                       <div className="flex items-center gap-2 mt-2">
                         <Badge variant="outline" className="text-xs">
-                          {question.answer_count || 0} answers
+                          {question.answer_count || 0} {t("questions.answersCount", "answers")}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           {new Date(question.created_at).toLocaleDateString()}
@@ -328,7 +331,7 @@ export default function Questions() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Latest Products
+                  {t("home.featuredProducts", "Latest Products")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -350,7 +353,7 @@ export default function Questions() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                          {product.name}
+                          <TranslatedText text={product.name} />
                         </h4>
                         <span className="text-xs text-muted-foreground mt-1 block">
                           {new Date(product.created_at).toLocaleDateString()}
@@ -369,7 +372,7 @@ export default function Questions() {
               {questions.length === 0 ? (
                 <div className="col-span-full text-center py-12">
                   <MessageCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground text-lg">No questions yet. Be the first to ask!</p>
+                  <p className="text-muted-foreground text-lg">{t("questions.noQuestions", "No questions yet. Be the first to ask!")}</p>
                 </div>
               ) : (
                 questions.map(question => (
@@ -382,25 +385,27 @@ export default function Questions() {
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Badge variant="secondary" className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5">
-                              {question.category.name}
+                              <TranslatedText text={question.category.name} />
                             </Badge>
                           </Link>
                         )}
-                        <Badge variant="outline" className="text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5">{question.answer_count || 0} Answers</Badge>
+                        <Badge variant="outline" className="text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5">{question.answer_count || 0} {t("questions.answersCount", "Answers")}</Badge>
                       </div>
-                      <CardTitle className="line-clamp-2 text-sm xl:text-lg">{question.title}</CardTitle>
+                      <CardTitle className="line-clamp-2 text-sm xl:text-lg">
+                        <TranslatedText text={question.title} />
+                      </CardTitle>
                       <CardDescription className="line-clamp-2 xl:line-clamp-3 text-xs xl:text-sm mt-1 xl:mt-2">
-                        {stripHtml(question.content)}
+                        <TranslatedText text={stripHtml(question.content)} />
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="p-3 pt-0 xl:p-6 xl:pt-0">
                       <div className="flex items-center justify-between">
                         <span className="text-xs xl:text-sm text-muted-foreground">
-                          {question.author?.username || "Anonymous"}
+                          {question.author?.username || t("questions.anonymous", "Anonymous")}
                         </span>
                         <Button variant="link" className="p-0 h-auto text-xs xl:text-sm" asChild>
                           <Link to={`/questions/${question.id}`}>
-                            View Details <ArrowRight className="ml-1 xl:ml-2 h-3 w-3 xl:h-4 xl:w-4" />
+                            {t("questions.viewQuestion", "View Details")} <ArrowRight className="ml-1 xl:ml-2 h-3 w-3 xl:h-4 xl:w-4" />
                           </Link>
                         </Button>
                       </div>
