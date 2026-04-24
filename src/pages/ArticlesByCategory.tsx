@@ -9,9 +9,12 @@ import { Calendar, User, ChevronLeft, ChevronRight, Home } from "lucide-react";
 import type { Category, ArticleWithAuthor } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ArticlesByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t, translateText, isDefaultLang, currentLang } = useTranslation();
   const [category, setCategory] = useState<Category | null>(null);
   const [articles, setArticles] = useState<ArticleWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +22,9 @@ export default function ArticlesByCategory() {
   const [totalCount, setTotalCount] = useState(0);
   const [siteName, setSiteName] = useState("");
   const { toast } = useToast();
+  // 翻译后的分类名称和描述
+  const [translatedCategoryName, setTranslatedCategoryName] = useState<string>("");
+  const [translatedCategoryDesc, setTranslatedCategoryDesc] = useState<string>("");
 
   const itemsPerPage = category?.items_per_page || 12;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -69,6 +75,20 @@ export default function ArticlesByCategory() {
     loadData();
   }, [categoryId, currentPage, toast]);
 
+  // 语言切换时同步翻译分类名称和描述
+  useEffect(() => {
+    if (!category) return;
+    setTranslatedCategoryName(category.name);
+    setTranslatedCategoryDesc(category.description || "");
+    if (isDefaultLang) return;
+    let cancelled = false;
+    translateText(category.name).then((r) => { if (!cancelled) setTranslatedCategoryName(r); });
+    if (category.description) {
+      translateText(category.description).then((r) => { if (!cancelled) setTranslatedCategoryDesc(r); });
+    }
+    return () => { cancelled = true; };
+  }, [category, currentLang, isDefaultLang, translateText]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -106,7 +126,7 @@ export default function ArticlesByCategory() {
             <p className="text-muted-foreground">Category not found</p>
             <Link to="/articles">
               <Button variant="outline" className="mt-4">
-                Back to Article List
+                {t("cat.backToArticleList", "Back to Article List")}
               </Button>
             </Link>
           </CardContent>
@@ -118,8 +138,8 @@ export default function ArticlesByCategory() {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta 
-        title={`${category.name} - ${siteName || 'iFixes'}`}
-        description={category.description || `Browse ${category.name} articles`}
+        title={`${translatedCategoryName || category.name} - ${siteName || 'iFixes'}`}
+        description={translatedCategoryDesc || category.description || `Browse ${category.name} articles`}
         keywords={category.seo_keywords || category.name}
       />
       
@@ -189,23 +209,23 @@ export default function ArticlesByCategory() {
             Articles
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground font-medium">{category.name}</span>
+          <span className="text-foreground font-medium">{translatedCategoryName || category.name}</span>
         </nav>
         
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">{category.name}</h1>
+          <h1 className="text-4xl font-bold mb-4">{translatedCategoryName || category.name}</h1>
           {category.description && (
-            <p className="text-lg text-muted-foreground">{category.description}</p>
+            <p className="text-lg text-muted-foreground">{translatedCategoryDesc || category.description}</p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {totalCount} articles
+            {totalCount} {t("cat.articlesCount", "articles")}
           </p>
         </div>
 
         {articles.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No articles in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noArticles", "No articles in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -225,13 +245,13 @@ export default function ArticlesByCategory() {
                     )}
                     <CardHeader className="p-3 xl:p-6">
                       <CardTitle className="line-clamp-2 hover:text-primary transition-colors">
-                        {article.title}
+                        <TranslatedText text={article.title} />
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-3 pt-0 xl:p-6 xl:pt-0">
                       {article.excerpt && (
                         <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
-                          {article.excerpt}
+                          <TranslatedText text={article.excerpt} />
                         </p>
                       )}
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
@@ -263,10 +283,10 @@ export default function ArticlesByCategory() {
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="h-4 w-4 mr-1" />
-                  Previous
+                  {t("cat.previous", "Previous")}
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Page {currentPage} of {totalPages}
+                  {t("cat.pageOf", "Page {current} of {total}").replace("{current}", String(currentPage)).replace("{total}", String(totalPages))}
                 </span>
                 <Button
                   variant="outline"
@@ -274,7 +294,7 @@ export default function ArticlesByCategory() {
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t("cat.next", "Next")}
                   <ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               </div>

@@ -10,13 +10,18 @@ import type { ArticleWithAuthor } from "@/types";
 import { ArrowLeft, Calendar, User, Eye, Clock, TrendingUp, Home, ChevronRight } from "lucide-react";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ArticleDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const { t, translateText, isDefaultLang, currentLang } = useTranslation();
   const [article, setArticle] = useState<ArticleWithAuthor | null>(null);
   const [recentArticles, setRecentArticles] = useState<ArticleWithAuthor[]>([]);
   const [relatedArticles, setRelatedArticles] = useState<ArticleWithAuthor[]>([]);
   const [loading, setLoading] = useState(true);
+  // 翻译后的正文 HTML（文章正文含富文本标签）
+  const [translatedContent, setTranslatedContent] = useState<string>("");
 
   // Record browsing history
   useRecordBrowsing("article", article?.id, article?.title);
@@ -55,6 +60,17 @@ export default function ArticleDetail() {
     }
   }, [slug]);
 
+  // 语言切换时重新翻译文章正文
+  useEffect(() => {
+    if (!article) return;
+    if (isDefaultLang) { setTranslatedContent(article.content || ""); return; }
+    let cancelled = false;
+    if (article.content) {
+      translateText(article.content).then((r) => { if (!cancelled) setTranslatedContent(r); });
+    }
+    return () => { cancelled = true; };
+  }, [article, currentLang, isDefaultLang, translateText]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -66,9 +82,9 @@ export default function ArticleDetail() {
   if (!article) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <h1 className="text-2xl font-bold">Article Not Found</h1>
+        <h1 className="text-2xl font-bold">{t("detail.articleNotFound", "Article Not Found")}</h1>
         <Button asChild>
-          <Link to="/articles">Back to Articles</Link>
+          <Link to="/articles">{t("detail.backToArticles", "Back to Articles")}</Link>
         </Button>
       </div>
     );
@@ -141,12 +157,14 @@ export default function ArticleDetail() {
                 to={`/articles/category/${article.category.id}`}
                 className="hover:text-foreground transition-colors"
               >
-                {article.category.name}
+                <TranslatedText text={article.category.name} />
               </Link>
             </>
           )}
           <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground font-medium line-clamp-1">{article.title}</span>
+          <span className="text-foreground font-medium line-clamp-1">
+            <TranslatedText text={article.title} />
+          </span>
         </nav>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 xl:gap-8">
@@ -167,7 +185,7 @@ export default function ArticleDetail() {
                   {article.category && (
                     <Link to={`/articles/category/${article.category.id}`}>
                       <Badge variant="secondary" className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs xl:text-sm">
-                        {article.category.name}
+                        <TranslatedText text={article.category.name} />
                       </Badge>
                     </Link>
                   )}
@@ -183,22 +201,22 @@ export default function ArticleDetail() {
                   </div>
                   <div className="flex items-center gap-1 text-xs xl:text-sm text-muted-foreground">
                     <User className="h-3 w-3 xl:h-4 xl:w-4" />
-                    <span itemProp="author">{article.author?.username || "Anonymous"}</span>
+                    <span itemProp="author">{article.author?.username || t("detail.anonymous", "Anonymous")}</span>
                   </div>
                   <div className="flex items-center gap-1 text-xs xl:text-sm text-muted-foreground">
                     <Eye className="h-3 w-3 xl:h-4 xl:w-4" />
-                    {article.view_count} views
+                    {article.view_count} {t("detail.views", "views")}
                   </div>
                 </div>
                 <CardTitle className="text-2xl xl:text-3xl" itemProp="headline">
-                  <h1>{article.title}</h1>
+                  <h1><TranslatedText text={article.title} /></h1>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div 
                   className="rich-content" 
                   itemProp="articleBody"
-                  dangerouslySetInnerHTML={{ __html: article.content }} 
+                  dangerouslySetInnerHTML={{ __html: translatedContent || article.content }} 
                 />
               </CardContent>
             </Card>
@@ -243,7 +261,7 @@ export default function ArticleDetail() {
                 <CardHeader>
                   <CardTitle className="text-lg xl:text-xl flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    Related Articles
+                    {t("detail.relatedArticles", "Related Articles")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -255,7 +273,7 @@ export default function ArticleDetail() {
                     >
                       <div className="space-y-1.5">
                         <h4 className="text-sm xl:text-base font-medium line-clamp-2 group-hover:text-primary transition-colors">
-                          {relatedArticle.title}
+                          <TranslatedText text={relatedArticle.title} />
                         </h4>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -287,7 +305,7 @@ export default function ArticleDetail() {
                 <CardHeader>
                   <CardTitle className="text-lg xl:text-xl flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Recent Articles
+                    {t("detail.recentArticles", "Recent Articles")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
@@ -302,7 +320,7 @@ export default function ArticleDetail() {
                     >
                       <div className="space-y-1.5">
                         <h4 className="text-sm xl:text-base font-medium line-clamp-2 group-hover:text-primary transition-colors">
-                          {recentArticle.title}
+                          <TranslatedText text={recentArticle.title} />
                         </h4>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
@@ -332,12 +350,12 @@ export default function ArticleDetail() {
             {/* Call to Action */}
             <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-primary/20">
               <CardContent className="pt-6 text-center space-y-3">
-                <h3 className="text-lg font-semibold">Have Questions?</h3>
+                <h3 className="text-lg font-semibold">{t("detail.haveQuestions", "Have Questions?")}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Join our community and get answers from experts
+                  {t("detail.joinCommunity", "Join our community and get answers from experts")}
                 </p>
                 <Button asChild className="w-full">
-                  <Link to="/questions">Ask a Question</Link>
+                  <Link to="/questions">{t("detail.askQuestion", "Ask a Question")}</Link>
                 </Button>
               </CardContent>
             </Card>

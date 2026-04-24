@@ -16,8 +16,10 @@ import { Menu, X, LogOut, Search, ChevronDown, UserCircle, FileText, MessageSqua
 import routes from "../../routes";
 import type { ModuleSetting, Category } from "@/types";
 import { cn } from "@/lib/utils";
-
-export default function Header() {
+import ThemeToggle from "./ThemeToggle";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [siteName, setSiteName] = useState("iFixes");
   const [siteLogo, setSiteLogo] = useState("");
@@ -33,6 +35,7 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
+  const { t } = useTranslation();
   const navigation = routes.filter((route) => route.visible !== false);
 
   // Function to load data
@@ -174,14 +177,14 @@ export default function Header() {
                 <img 
                   src={siteLogo} 
                   alt={siteName} 
-                  className="h-10 w-auto max-w-[200px] object-contain"
+                  className="h-10 w-auto max-w-[200px] object-contain transition-all duration-300 dark:brightness-0 dark:invert"
                 />
               ) : (
                 <>
-                  <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center transition-colors duration-300">
                     <span className="text-primary-foreground font-bold text-xl">C</span>
                   </div>
-                  <span className="text-xl font-bold text-foreground">{siteName}</span>
+                  <span className="text-xl font-bold text-foreground transition-colors duration-300">{siteName}</span>
                 </>
               )}
             </Link>
@@ -199,7 +202,7 @@ export default function Header() {
                         <NavigationMenuTrigger
                           className="font-medium"
                         >
-                          {getDisplayName(item.path, item.name)}
+                          <TranslatedText text={getDisplayName(item.path, item.name)} />
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
                           <div className="w-[500px] p-6">
@@ -209,16 +212,16 @@ export default function Header() {
                                 className="block px-4 py-3 rounded-lg hover:bg-secondary/80 transition-all duration-200 group"
                               >
                                 <div className="font-semibold text-base group-hover:text-primary transition-colors">
-                                  All {getDisplayName(item.path, item.name)}
+                                  {t("nav.all", "All")} <TranslatedText text={getDisplayName(item.path, item.name)} />
                                 </div>
-                                <div className="text-sm text-muted-foreground mt-1">View all content</div>
+                                <div className="text-sm text-muted-foreground mt-1">{t("nav.viewAllContent", "View all content")}</div>
                               </Link>
                             </div>
                             {categories.length > 0 && (
                               <>
                                 <div className="border-t border-border pt-4">
                                   <div className="text-xs font-semibold text-muted-foreground px-4 mb-3 uppercase tracking-wider">
-                                    Browse by Category
+                                    {t("nav.browseByCategory", "Browse by Category")}
                                   </div>
                                   <div className="grid grid-cols-2 gap-2">
                                     {categories.map((category) => (
@@ -228,11 +231,11 @@ export default function Header() {
                                         className="block px-4 py-3 rounded-lg hover:bg-secondary/80 transition-all duration-200 group"
                                       >
                                         <div className="font-medium text-sm group-hover:text-primary transition-colors">
-                                          {category.name}
+                                          <TranslatedText text={category.name} />
                                         </div>
                                         {category.description && (
                                           <div className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                                            {category.description}
+                                            <TranslatedText text={category.description} />
                                           </div>
                                         )}
                                       </Link>
@@ -253,7 +256,7 @@ export default function Header() {
                         <NavigationMenuLink
                           className="group inline-flex h-10 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 data-[active]:bg-accent/50 data-[state=open]:bg-accent/50"
                         >
-                          {getDisplayName(item.path, item.name)}
+                          <TranslatedText text={getDisplayName(item.path, item.name)} />
                         </NavigationMenuLink>
                       </Link>
                     </NavigationMenuItem>
@@ -268,7 +271,7 @@ export default function Header() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search articles, products, Q&A..."
+                placeholder={t("header.searchPlaceholder", "Search articles, products, Q&A...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4"
@@ -277,6 +280,11 @@ export default function Header() {
           </div>
 
           <div className="hidden xl:flex items-center gap-2">
+            {/* 主题切换按钮 */}
+            <ThemeToggle />
+            {/* 语言切换器 */}
+            <LanguageSwitcher variant="header" />
+            
             {user ? (
               <>
                 {/* 通知图标 */}
@@ -296,7 +304,7 @@ export default function Header() {
                     <NavigationMenuItem>
                       <NavigationMenuTrigger className="font-medium gap-2">
                         <UserCircle className="h-4 w-4" />
-                        {profile?.username || "Member Center"}
+                        {profile?.username || t("nav.memberCenter", "Member Center")}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
                         <div className="w-[300px] p-6">
@@ -304,7 +312,7 @@ export default function Header() {
                           <div className="mb-4 pb-4 border-b border-border">
                             <div className="font-semibold text-base">{profile?.username}</div>
                             <div className="text-sm text-muted-foreground mt-1">
-                              {profile?.email || "Member Account"}
+                              {profile?.email || t("nav.memberAccount", "Member Account")}
                             </div>
                           </div>
                           
@@ -316,7 +324,7 @@ export default function Header() {
                             >
                               <UserCircle className="mr-3 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                               <div className="font-medium text-sm group-hover:text-primary transition-colors">
-                                Member Center
+                                {t("nav.memberCenter", "Member Center")}
                               </div>
                             </Link>
                             
@@ -339,7 +347,7 @@ export default function Header() {
                                 >
                                   <LayoutDashboard className="mr-3 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                   <div className="font-medium text-sm group-hover:text-primary transition-colors">
-                                    Admin Panel
+                                    {t("nav.admin", "Admin Panel")}
                                   </div>
                                 </Link>
                               </>
@@ -352,7 +360,7 @@ export default function Header() {
                             >
                               <LogOut className="mr-3 h-4 w-4 text-destructive" />
                               <div className="font-medium text-sm text-destructive">
-                                Logout
+                                {t("nav.logout", "Logout")}
                               </div>
                             </button>
                           </div>
@@ -364,7 +372,7 @@ export default function Header() {
               </>
             ) : (
               <Link to="/login">
-                <Button size="sm">Login</Button>
+                <Button size="sm">{t("nav.login", "Login")}</Button>
               </Link>
             )}
           </div>
@@ -384,7 +392,7 @@ export default function Header() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search articles, products, Q&A..."
+                placeholder={t("header.searchPlaceholder", "Search articles, products, Q&A...")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4"
@@ -408,7 +416,7 @@ export default function Header() {
                           variant="ghost"
                           className="w-full justify-start"
                         >
-                          {getDisplayName(item.path, item.name)}
+                          <TranslatedText text={getDisplayName(item.path, item.name)} />
                         </Button>
                       </Link>
                       <Button
@@ -438,7 +446,7 @@ export default function Header() {
                               size="sm"
                               className="w-full justify-start text-sm"
                             >
-                              {category.name}
+                              <TranslatedText text={category.name} />
                             </Button>
                           </Link>
                         ))}
@@ -458,25 +466,38 @@ export default function Header() {
                     variant="ghost"
                     className="w-full justify-start"
                   >
-                    {getDisplayName(item.path, item.name)}
+                    <TranslatedText text={getDisplayName(item.path, item.name)} />
                   </Button>
                 </Link>
               );
             })}
             <div className="pt-2 border-t border-border space-y-2">
+              {/* 主题切换按钮 - 移动端 */}
+              <div className="px-2 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">{t("member.themeMode", "Theme Mode")}</span>
+                  <ThemeToggle />
+                </div>
+              </div>
+
+              {/* 语言切换 - 移动端 */}
+              <div className="px-2 py-2 border-t">
+                <LanguageSwitcher variant="mobile" />
+              </div>
+
               {user ? (
                 <>
                   <Link to="/member-center" onClick={() => setIsMenuOpen(false)}>
                     <Button variant="ghost" className="w-full justify-start">
                       <UserCircle className="h-4 w-4 mr-2" />
-                      {profile?.username || "Member Center"}
+                      {profile?.username || t("nav.memberCenter", "Member Center")}
                     </Button>
                   </Link>
                   {profile?.role === "admin" && (
                     <Link to="/admin" onClick={() => setIsMenuOpen(false)}>
                       <Button variant="outline" className="w-full justify-start">
                         <LayoutDashboard className="h-4 w-4 mr-2" />
-                        Admin Panel
+                        {t("nav.admin", "Admin Panel")}
                       </Button>
                     </Link>
                   )}
@@ -489,12 +510,12 @@ export default function Header() {
                     }}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Logout
+                    {t("nav.logout", "Logout")}
                   </Button>
                 </>
               ) : (
                 <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full">Login</Button>
+                  <Button className="w-full">{t("nav.login", "Login")}</Button>
                 </Link>
               )}
             </div>

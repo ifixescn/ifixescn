@@ -3,15 +3,18 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import PageMeta from "@/components/common/PageMeta";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { sendEmailVerification, verifyEmailCode } from "@/db/api";
 import { Mail, CheckCircle, Loader2 } from "lucide-react";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -38,8 +41,8 @@ export default function VerifyEmail() {
   const handleSendCode = async () => {
     if (!email) {
       toast({
-        title: "Error",
-        description: "Please enter your email address",
+        title: t("auth.error", "Error"),
+        description: t("auth.enterEmailAddress", "Please enter your email address"),
         variant: "destructive",
       });
       return;
@@ -49,8 +52,8 @@ export default function VerifyEmail() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       toast({
-        title: "Error",
-        description: "Please enter a valid email address",
+        title: t("auth.error", "Error"),
+        description: t("auth.invalidEmail", "Please enter a valid email address"),
         variant: "destructive",
       });
       return;
@@ -60,15 +63,15 @@ export default function VerifyEmail() {
     try {
       await sendEmailVerification(email);
       toast({
-        title: "Success",
-        description: "Verification code sent! Please check your email.",
+        title: t("auth.success", "Success"),
+        description: t("auth.verificationCodeSent", "Verification code sent! Please check your email."),
       });
       setCountdown(60); // 60 second countdown
     } catch (error: any) {
       console.error("Failed to send verification code:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to send verification code",
+        title: t("auth.error", "Error"),
+        description: error.message || t("auth.sendCodeFailed", "Failed to send verification code"),
         variant: "destructive",
       });
     } finally {
@@ -81,8 +84,8 @@ export default function VerifyEmail() {
     
     if (!email || !code) {
       toast({
-        title: "Error",
-        description: "Please enter email and verification code",
+        title: t("auth.error", "Error"),
+        description: t("auth.enterEmailAndCode", "Please enter email and verification code"),
         variant: "destructive",
       });
       return;
@@ -94,8 +97,8 @@ export default function VerifyEmail() {
       if (result) {
         setVerified(true);
         toast({
-          title: "Success",
-          description: "Email verified successfully!",
+          title: t("auth.success", "Success"),
+          description: t("auth.emailVerifiedSuccess", "Email verified successfully!"),
         });
         
         // Redirect to profile after 3 seconds
@@ -104,16 +107,16 @@ export default function VerifyEmail() {
         }, 3000);
       } else {
         toast({
-          title: "Error",
-          description: "Invalid or expired verification code",
+          title: t("auth.error", "Error"),
+          description: t("auth.invalidOrExpiredCode", "Invalid or expired verification code"),
           variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Verification failed:", error);
       toast({
-        title: "Error",
-        description: error.message || "Verification failed",
+        title: t("auth.error", "Error"),
+        description: error.message || t("auth.verificationFailed", "Verification failed"),
         variant: "destructive",
       });
     } finally {
@@ -129,9 +132,9 @@ export default function VerifyEmail() {
             <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="h-8 w-8 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Email Verified!</CardTitle>
+            <CardTitle className="text-2xl">{t("auth.emailVerified", "Email Verified!")}</CardTitle>
             <CardDescription>
-              Your email has been successfully verified. Redirecting to your profile...
+              {t("auth.emailVerifiedDesc", "Your email has been successfully verified. Redirecting to your profile...")}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -141,20 +144,21 @@ export default function VerifyEmail() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+      <PageMeta title="Verify Email" noIndex={true} />
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
             <Mail className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl">Verify Your Email</CardTitle>
+          <CardTitle className="text-2xl">{t("auth.verifyYourEmail", "Verify Your Email")}</CardTitle>
           <CardDescription>
-            Enter your email address and the verification code sent to your inbox
+            {t("auth.verifyEmailDesc", "Enter your email address and the verification code sent to your inbox")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleVerify} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">{t("auth.emailAddress", "Email Address")}</Label>
               <div className="flex gap-2">
                 <Input
                   id="email"
@@ -176,18 +180,18 @@ export default function VerifyEmail() {
                   ) : countdown > 0 ? (
                     `${countdown}s`
                   ) : (
-                    "Send Code"
+                    t("auth.sendCode", "Send Code")
                   )}
                 </Button>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="code">Verification Code</Label>
+              <Label htmlFor="code">{t("auth.verificationCode", "Verification Code")}</Label>
               <Input
                 id="code"
                 type="text"
-                placeholder="Enter 6-digit code"
+                placeholder={t("auth.enter6DigitCode", "Enter 6-digit code")}
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 maxLength={6}
@@ -199,22 +203,22 @@ export default function VerifyEmail() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Verifying...
+                  {t("auth.verifying", "Verifying...")}
                 </>
               ) : (
-                "Verify Email"
+                t("auth.verifyEmail", "Verify Email")
               )}
             </Button>
 
             <div className="text-center text-sm text-muted-foreground">
-              <p>Didn't receive the code?</p>
+              <p>{t("auth.didntReceiveCode", "Didn't receive the code?")}</p>
               <button
                 type="button"
                 onClick={handleSendCode}
                 disabled={countdown > 0}
                 className="text-primary hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {countdown > 0 ? `Resend in ${countdown}s` : "Resend verification code"}
+                {countdown > 0 ? `${t("auth.resendIn", "Resend in")} ${countdown}s` : t("auth.resendCode", "Resend verification code")}
               </button>
             </div>
 
@@ -224,7 +228,7 @@ export default function VerifyEmail() {
                 onClick={() => navigate("/profile")}
                 className="text-sm text-muted-foreground hover:text-foreground"
               >
-                Back to Profile
+                {t("auth.backToProfile", "Back to Profile")}
               </button>
             </div>
           </form>

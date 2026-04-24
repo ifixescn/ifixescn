@@ -18,9 +18,12 @@ import { ChevronLeft, Tag, Home, ChevronRight } from "lucide-react";
 import type { Category, ProductWithImages } from "@/types";
 import { useToast } from "@/hooks/use-toast";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function ProductsByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t, translateText, isDefaultLang, currentLang } = useTranslation();
   const [category, setCategory] = useState<Category | null>(null);
   const [products, setProducts] = useState<ProductWithImages[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,10 @@ export default function ProductsByCategory() {
   const [totalCount, setTotalCount] = useState(0);
   const [siteName, setSiteName] = useState("");
   const { toast } = useToast();
+
+  // 翻译后的分类名称和描述
+  const [translatedCategoryName, setTranslatedCategoryName] = useState<string>("");
+  const [translatedCategoryDesc, setTranslatedCategoryDesc] = useState<string>("");
 
   const itemsPerPage = 12; // 固定每页12个产品
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -77,6 +84,20 @@ export default function ProductsByCategory() {
 
     loadData();
   }, [categoryId, currentPage, toast]);
+
+  // 当语言或分类切换时，同步翻译分类名称和描述
+  useEffect(() => {
+    if (!category) return;
+    setTranslatedCategoryName(category.name);
+    setTranslatedCategoryDesc(category.description || "");
+    if (isDefaultLang) return;
+    let cancelled = false;
+    translateText(category.name).then((r) => { if (!cancelled) setTranslatedCategoryName(r); });
+    if (category.description) {
+      translateText(category.description).then((r) => { if (!cancelled) setTranslatedCategoryDesc(r); });
+    }
+    return () => { cancelled = true; };
+  }, [category, currentLang, isDefaultLang, translateText]);
 
   // 生成页码数组
   const generatePageNumbers = () => {
@@ -148,10 +169,10 @@ export default function ProductsByCategory() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Category not found</p>
+            <p className="text-muted-foreground">{t("cat.categoryNotFound", "Category not found")}</p>
             <Link to="/products">
               <Button variant="outline" className="mt-4">
-                Back to Product List
+                {t("cat.backToProductList", "Back to Product List")}
               </Button>
             </Link>
           </CardContent>
@@ -163,8 +184,8 @@ export default function ProductsByCategory() {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta 
-        title={`${category.name} - ${siteName || 'iFixes'}`}
-        description={category.description || `Browse ${category.name} products`}
+        title={`${translatedCategoryName || category.name} - ${siteName || 'iFixes'}`}
+        description={translatedCategoryDesc || category.description || `Browse ${category.name} products`}
         keywords={category.seo_keywords || category.name}
       />
       
@@ -234,29 +255,29 @@ export default function ProductsByCategory() {
             Products
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground font-medium">{category.name}</span>
+          <span className="text-foreground font-medium">{translatedCategoryName || category.name}</span>
         </nav>
         
         <div className="mb-8">
           <Link to="/products">
             <Button variant="ghost" size="sm" className="mb-4">
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Product List
+              {t("cat.backToProductList", "Back to Product List")}
             </Button>
           </Link>
-          <h1 className="text-4xl font-bold mb-4">{category.name}</h1>
+          <h1 className="text-4xl font-bold mb-4">{translatedCategoryName || category.name}</h1>
           {category.description && (
-            <p className="text-lg text-muted-foreground">{category.description}</p>
+            <p className="text-lg text-muted-foreground">{translatedCategoryDesc || category.description}</p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {totalCount} {totalCount === 1 ? 'product' : 'products'}
+            {totalCount} {t("cat.productsCount", "products")}
           </p>
         </div>
 
         {products.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No products in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noProducts", "No products in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -280,7 +301,7 @@ export default function ProductsByCategory() {
                     )}
                     <CardHeader className="p-2 xl:p-4">
                       <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors text-xs xl:text-base text-center">
-                        {product.name}
+                        <TranslatedText text={product.name} />
                       </CardTitle>
                     </CardHeader>
                   </Card>

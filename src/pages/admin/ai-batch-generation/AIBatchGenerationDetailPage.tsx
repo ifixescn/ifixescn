@@ -93,7 +93,7 @@ export default function AIBatchGenerationDetailPage() {
       let failed = 0;
 
       // 逐个生成文章
-      for (const keyword of batch.keywords_list) {
+      for (const keyword of (batch.keywords_list ?? [])) {
         setCurrentKeyword(keyword);
 
         try {
@@ -102,7 +102,7 @@ export default function AIBatchGenerationDetailPage() {
             keywords: keyword,
             batch_id: id,
             template_id: batch.template_id || undefined,
-            category_id: template?.category_id || undefined,
+            category_id: template?.category_id ?? null,
             article_length: template?.article_length || 'medium',
             article_style: template?.article_style || 'professional',
             ai_temperature: template?.ai_temperature || 0.7,
@@ -255,11 +255,11 @@ export default function AIBatchGenerationDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>关键词列表</CardTitle>
-          <CardDescription>共 {batch.keywords_list.length} 个关键词</CardDescription>
+          <CardDescription>共 {(batch.keywords_list ?? []).length} 个关键词</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {batch.keywords_list.map((keyword, index) => (
+            {(batch.keywords_list ?? []).map((keyword, index) => (
               <Badge key={index} variant="secondary">
                 {keyword}
               </Badge>

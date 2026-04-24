@@ -9,7 +9,10 @@ import { getCategoryById, getQuestionsByCategoryId, countQuestionsByCategory, ge
 import { Calendar, User, MessageCircle, ChevronLeft, FolderOpen, TrendingUp } from "lucide-react";
 import type { Category, QuestionWithAnswers, ProductWithImages } from "@/types";
 import { useToast } from "@/hooks/use-toast";
+import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 // Helper function to strip HTML tags and get plain text
 const stripHtml = (html: string): string => {
@@ -20,6 +23,7 @@ const stripHtml = (html: string): string => {
 
 export default function QuestionsByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t, translateText, isDefaultLang, currentLang } = useTranslation();
   const [category, setCategory] = useState<Category | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [questions, setQuestions] = useState<QuestionWithAnswers[]>([]);
@@ -29,6 +33,9 @@ export default function QuestionsByCategory() {
   const [totalCount, setTotalCount] = useState(0);
   const [siteName, setSiteName] = useState("");
   const { toast } = useToast();
+  // 翻译后的分类名称和描述
+  const [translatedCategoryName, setTranslatedCategoryName] = useState<string>("");
+  const [translatedCategoryDesc, setTranslatedCategoryDesc] = useState<string>("");
 
   const itemsPerPage = 7; // 每页7条
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -83,6 +90,18 @@ export default function QuestionsByCategory() {
     loadData();
   }, [categoryId, currentPage, toast]);
 
+  // 语言切换时同步翻译分类名称和描述
+  useEffect(() => {
+    if (!category) return;
+    setTranslatedCategoryName(category.name);
+    setTranslatedCategoryDesc(category.description || "");
+    if (isDefaultLang) return;
+    let cancelled = false;
+    translateText(category.name).then((r) => { if (!cancelled) setTranslatedCategoryName(r); });
+    if (category.description) translateText(category.description).then((r) => { if (!cancelled) setTranslatedCategoryDesc(r); });
+    return () => { cancelled = true; };
+  }, [category, currentLang, isDefaultLang, translateText]);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("zh-CN", {
       year: "numeric",
@@ -125,10 +144,10 @@ export default function QuestionsByCategory() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Category not found</p>
+            <p className="text-muted-foreground">{t("cat.categoryNotFound", "Category not found")}</p>
             <Link to="/questions">
               <Button variant="outline" className="mt-4">
-                BackQ&A List
+                {t("cat.backToQAList", "Back to Q&A List")}
               </Button>
             </Link>
           </CardContent>
@@ -140,10 +159,33 @@ export default function QuestionsByCategory() {
   return (
     <div className="min-h-screen bg-background">
       <PageMeta 
-        title={`${category.name} - ${siteName || 'iFixes'}`}
-        description={category.description || `Browse ${category.name} questions`}
+        title={`${translatedCategoryName || category.name} - ${siteName || 'iFixes'}`}
+        description={translatedCategoryDesc || category.description || `Browse ${category.name} questions`}
         keywords={category.seo_keywords || category.name}
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Q&A", "item": `${window.location.origin}/questions` },
+              { "@type": "ListItem", "position": 3, "name": category.name, "item": window.location.href }
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": category.name,
+            "description": category.description || `Browse ${category.name} questions`,
+            "url": window.location.href,
+            "isPartOf": { "@type": "WebSite", "name": siteName || "iFixes", "url": window.location.origin }
+          })}
+        </script>
+      </Helmet>
       {category.banner_image && (
         <div className="w-full h-64 xl:h-80 overflow-hidden bg-muted">
           <img
@@ -159,22 +201,22 @@ export default function QuestionsByCategory() {
           <Link to="/questions">
             <Button variant="ghost" size="sm" className="mb-4">
               <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Q&A List
+              {t("cat.backToQAList", "Back to Q&A List")}
             </Button>
           </Link>
-          <h1 className="text-4xl font-bold mb-4">{category.name}</h1>
+          <h1 className="text-4xl font-bold mb-4">{translatedCategoryName || category.name}</h1>
           {category.description && (
-            <p className="text-lg text-muted-foreground">{category.description}</p>
+            <p className="text-lg text-muted-foreground">{translatedCategoryDesc || category.description}</p>
           )}
           <p className="text-sm text-muted-foreground mt-2">
-            {totalCount} Questions
+            {totalCount} {t("cat.questionsCount", "Questions")}
           </p>
         </div>
 
         {questions.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">No questions in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noQuestions", "No questions in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -186,13 +228,13 @@ export default function QuestionsByCategory() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <FolderOpen className="h-5 w-5" />
-                    Q&A Categories
+                    {t("detail.qaCategories", "Q&A Categories")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-1">
                   <Link to="/questions">
                     <Button variant="ghost" className="w-full justify-start">
-                      All Q&A
+                      {t("detail.allQA", "All Q&A")}
                     </Button>
                   </Link>
                   {categories.map(cat => (
@@ -201,7 +243,7 @@ export default function QuestionsByCategory() {
                         variant={cat.id === categoryId ? "secondary" : "ghost"} 
                         className="w-full justify-start"
                       >
-                        {cat.name}
+                        <TranslatedText text={cat.name} />
                       </Button>
                     </Link>
                   ))}
@@ -235,7 +277,7 @@ export default function QuestionsByCategory() {
                         )}
                         <div className="flex-1 min-w-0">
                           <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                            {product.name}
+                            <TranslatedText text={product.name} />
                           </h4>
                           <span className="text-xs text-muted-foreground mt-1 block">
                             {new Date(product.created_at).toLocaleDateString()}
@@ -257,7 +299,7 @@ export default function QuestionsByCategory() {
                       <CardHeader className="p-3 xl:p-6">
                         <div className="flex items-start justify-between gap-4">
                           <CardTitle className="line-clamp-2 hover:text-primary transition-colors flex-1">
-                            {question.title}
+                            <TranslatedText text={question.title} />
                           </CardTitle>
                           <Badge variant="secondary" className="flex items-center gap-1 shrink-0">
                             <MessageCircle className="h-3 w-3" />
@@ -268,7 +310,7 @@ export default function QuestionsByCategory() {
                       <CardContent className="p-3 pt-0 xl:p-6 xl:pt-0">
                         {question.content && (
                           <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                            {stripHtml(question.content)}
+                            <TranslatedText text={stripHtml(question.content)} />
                           </p>
                         )}
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">

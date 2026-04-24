@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { recordPageView, updatePageDuration } from "@/db/api";
+import { supabase } from "@/db/supabase";
 
 // 生成兼容的UUID（支持旧版浏览器和WebView）
 function generateUUID(): string {
@@ -84,6 +85,36 @@ function getOS(): string {
   return "Unknown";
 }
 
+// IP 归属地缓存（会话内缓存，避免重复查询）
+type GeoData = { ip?: string; country?: string; countryCode?: string; region?: string; city?: string; isp?: string } | null;
+let cachedGeoData: GeoData = null;
+let geoFetchPromise: Promise<GeoData> | null = null;
+
+async function fetchGeoData(): Promise<GeoData> {
+  if (cachedGeoData) return cachedGeoData;
+  if (geoFetchPromise) return geoFetchPromise;
+
+  geoFetchPromise = (async (): Promise<GeoData> => {
+    try {
+      const { data, error } = await supabase.functions.invoke("ip-geo", { method: "GET" });
+      if (error || !data) return null;
+      cachedGeoData = {
+        ip: data.ip,
+        country: data.country,
+        countryCode: data.countryCode,
+        region: data.region,
+        city: data.city,
+        isp: data.isp,
+      };
+      return cachedGeoData;
+    } catch {
+      return null;
+    }
+  })();
+
+  return geoFetchPromise;
+}
+
 /**
  * 页面访问追踪Hook
  * 自动记录页面访问和停留时长
@@ -102,6 +133,8 @@ export function usePageTracking() {
     // 记录页面访问
     const trackPageView = async () => {
       try {
+        // 并行获取 geo 数据（不阻塞页面访问记录）
+        const geo = await fetchGeoData();
         const viewId = await recordPageView({
           visitor_id: visitorId,
           session_id: sessionId,
@@ -112,6 +145,12 @@ export function usePageTracking() {
           device_type: getDeviceType(),
           browser: getBrowser(),
           os: getOS(),
+          ip_address: geo?.ip,
+          country: geo?.country,
+          country_code: geo?.countryCode,
+          region: geo?.region,
+          city: geo?.city,
+          isp: geo?.isp,
         });
         viewIdRef.current = viewId;
       } catch (error) {

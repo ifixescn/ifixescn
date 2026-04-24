@@ -8,8 +8,11 @@ import { getArticles, getCategories } from "@/db/api";
 import type { ArticleWithAuthor, Category } from "@/types";
 import { ArrowRight, FileText, FolderOpen, Clock } from "lucide-react";
 import PageMeta from "@/components/common/PageMeta";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function Articles() {
+  const { t } = useTranslation();
   const [articles, setArticles] = useState<ArticleWithAuthor[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [latestArticles, setLatestArticles] = useState<ArticleWithAuthor[]>([]);
@@ -83,9 +86,9 @@ export default function Articles() {
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-3">
             <FileText className="h-10 w-10 text-primary" />
-            Article List
+            {t("articles.title", "Articles")}
           </h1>
-          <p className="text-muted-foreground text-lg">Explore exciting content and get the latest information</p>
+          <p className="text-muted-foreground text-lg">{t("articles.latestArticles", "Latest Articles")}</p>
         </div>
 
         <div className="flex flex-col xl:flex-row gap-6">
@@ -96,19 +99,19 @@ export default function Articles() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5" />
-                  Article Categories
+                  {t("articles.categories", "Categories")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-1">
                 <Link to="/articles">
                   <Button variant="ghost" className="w-full justify-start">
-                    All Articles
+                    {t("articles.allCategories", "All Articles")}
                   </Button>
                 </Link>
                 {categories.map(category => (
                   <Link key={category.id} to={`/articles/category/${category.id}`}>
                     <Button variant="ghost" className="w-full justify-start">
-                      {category.name}
+                      <TranslatedText text={category.name} />
                     </Button>
                   </Link>
                 ))}
@@ -120,7 +123,7 @@ export default function Articles() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="h-5 w-5" />
-                  Latest Articles
+                  {t("articles.latestArticles", "Latest Articles")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -142,7 +145,7 @@ export default function Articles() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors">
-                          {article.title}
+                          <TranslatedText text={article.title} />
                         </h4>
                         <p className="text-xs text-muted-foreground mt-1">
                           {new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
@@ -175,7 +178,7 @@ export default function Articles() {
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Badge variant="secondary" className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5">
-                            {article.category.name}
+                            <TranslatedText text={article.category.name} />
                           </Badge>
                         </Link>
                       )}
@@ -183,15 +186,17 @@ export default function Articles() {
                         {new Date(article.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                       </span>
                     </div>
-                    <CardTitle className="line-clamp-2 text-sm xl:text-lg">{article.title}</CardTitle>
+                    <CardTitle className="line-clamp-2 text-sm xl:text-lg">
+                      <TranslatedText text={article.title} />
+                    </CardTitle>
                     <CardDescription className="line-clamp-2 xl:line-clamp-3 text-xs xl:text-sm mt-1 xl:mt-2">
-                      {article.excerpt || article.content.substring(0, 100)}
+                      <TranslatedText text={article.excerpt || article.content.substring(0, 100)} />
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-3 pt-0 xl:p-6 xl:pt-0">
                     <Button variant="link" className="p-0 h-auto text-xs xl:text-sm" asChild>
                       <Link to={`/articles/${article.slug}`}>
-                        Read More <ArrowRight className="ml-1 xl:ml-2 h-3 w-3 xl:h-4 xl:w-4" />
+                        {t("articles.readMore", "Read More")} <ArrowRight className="ml-1 xl:ml-2 h-3 w-3 xl:h-4 xl:w-4" />
                       </Link>
                     </Button>
                   </CardContent>
@@ -206,14 +211,14 @@ export default function Articles() {
                   disabled={page === 1}
                   onClick={() => setPage(p => p - 1)}
                 >
-                  Previous
+                  {t("nav.previous", "Previous")}
                 </Button>
                 <Button
                   variant="outline"
                   disabled={page * 12 >= total}
                   onClick={() => setPage(p => p + 1)}
                 >
-                  Next
+                  {t("articles.loadMore", "Next")}
                 </Button>
               </div>
             )}

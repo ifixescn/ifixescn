@@ -8,88 +8,155 @@ All colors MUST be HSL.
 */
 
 @layer base {
+  /* Light Mode - Deep blue theme with white */
   :root {
-    --radius: 0.75rem;
-    --font-family: 'Inter', sans-serif;
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    --radius: 0.5rem;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    
+    /* Background colors - Clean white with subtle blue tint */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 4%;
+    
+    /* Card colors - Pure white with subtle shadows */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 4%;
+    
+    /* Popover colors */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 217 91% 60%;
+    --popover-foreground: 240 10% 4%;
+    
+    /* Primary - Deep blue */
+    --primary: 215 85% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 70%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 84% 60%;
+    --primary-glow: 215 85% 55%;
+    
+    /* Secondary - Subtle gray-blue */
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 10% 4%;
+    
+    /* Muted - Light gray backgrounds */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+    
+    /* Accent - Soft blue accent */
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 10% 4%;
+    
+    /* Destructive - Soft red */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    
+    /* Border and input - Very subtle borders */
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 215 85% 45%;
+    
+    /* Chart colors - Deep blue inspired palette */
+    --chart-1: 215 85% 45%;
+    --chart-2: 200 80% 50%;
+    --chart-3: 190 75% 45%;
+    --chart-4: 160 60% 50%;
+    --chart-5: 30 80% 55%;
+    
+    /* Sidebar colors */
     --sidebar: 0 0% 100%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-foreground: 240 10% 4%;
+    --sidebar-primary: 215 85% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 217 91% 60%;
-    --shadow-elegant: 0 10px 30px -10px hsl(217 91% 60% / 0.2);
-    --shadow-glow: 0 0 40px hsl(217 91% 70% / 0.3);
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
-    --gradient-subtle: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 240 10% 4%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 215 85% 45%;
+    
+    /* Shadows - Soft and elegant */
+    --shadow-elegant: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-glow: 0 0 0 1px hsl(215 85% 45% / 0.1), 0 8px 16px -4px hsl(215 85% 45% / 0.2);
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+    --shadow-hover: 0 4px 12px 0 rgb(0 0 0 / 0.08);
+    
+    /* Gradients - Subtle and modern */
+    --gradient-primary: linear-gradient(135deg, hsl(215 85% 45%), hsl(200 80% 50%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(240 5% 98%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(240 5% 99%));
+    --gradient-background: linear-gradient(180deg, hsl(240 5% 98%), hsl(0 0% 100%));
+    
+    /* Transitions - Smooth and responsive */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
+  /* Dark Mode - Deep blue night theme */
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 15%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 15%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
+    /* Background colors - Deep dark with blue tint */
+    --background: 240 10% 4%;
+    --foreground: 240 5% 96%;
+    
+    /* Card colors - Slightly lighter than background */
+    --card: 240 8% 8%;
+    --card-foreground: 240 5% 96%;
+    
+    /* Popover colors */
+    --popover: 240 8% 8%;
+    --popover-foreground: 240 5% 96%;
+    
+    /* Primary - Brighter deep blue for dark mode */
+    --primary: 215 85% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 217 91% 70%;
-    --secondary: 217 19% 27%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 19% 27%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 19% 27%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84% 60%;
+    --primary-glow: 215 85% 65%;
+    
+    /* Secondary - Dark gray-blue */
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 240 5% 96%;
+    
+    /* Muted - Dark backgrounds */
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    
+    /* Accent - Dark blue accent */
+    --accent: 240 4% 16%;
+    --accent-foreground: 240 5% 96%;
+    
+    /* Destructive - Bright red for dark mode */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 19% 27%;
-    --input: 217 19% 27%;
-    --ring: 217 91% 60%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --sidebar: 222 47% 15%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
+    
+    /* Border and input - Subtle borders in dark */
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 215 85% 55%;
+    
+    /* Chart colors - Deep blue palette for dark mode */
+    --chart-1: 215 85% 55%;
+    --chart-2: 200 80% 55%;
+    --chart-3: 190 75% 50%;
+    --chart-4: 160 60% 50%;
+    --chart-5: 30 80% 55%;
+    
+    /* Sidebar colors */
+    --sidebar: 240 8% 8%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 215 85% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 19% 27%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 217 19% 27%;
-    --sidebar-ring: 217 91% 60%;
-    --shadow-elegant: 0 10px 30px -10px hsl(217 91% 60% / 0.3);
-    --shadow-glow: 0 0 40px hsl(217 91% 70% / 0.4);
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(217 91% 70%));
-    --gradient-subtle: linear-gradient(180deg, hsl(222 47% 11%), hsl(222 47% 15%));
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --sidebar-accent: 240 4% 16%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 240 4% 16%;
+    --sidebar-ring: 215 85% 55%;
+    
+    /* Shadows - Deeper shadows for dark mode */
+    --shadow-elegant: 0 4px 16px 0 rgb(0 0 0 / 0.4);
+    --shadow-glow: 0 0 0 1px hsl(215 85% 55% / 0.2), 0 8px 24px -4px hsl(215 85% 55% / 0.3);
+    --shadow-card: 0 2px 8px 0 rgb(0 0 0 / 0.3);
+    --shadow-hover: 0 8px 24px 0 rgb(0 0 0 / 0.4);
+    
+    /* Gradients - Deep blue dark gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(215 85% 55%), hsl(200 80% 55%));
+    --gradient-subtle: linear-gradient(180deg, hsl(240 10% 4%), hsl(240 8% 8%));
+    --gradient-card: linear-gradient(135deg, hsl(240 8% 8%), hsl(240 8% 10%));
+    --gradient-background: linear-gradient(180deg, hsl(240 10% 4%), hsl(240 8% 6%));
+    
+    /* Transitions - Same smooth transitions */
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 }
 
@@ -111,6 +178,77 @@ All colors MUST be HSL.
     color: transparent;
   }
 
+  /* Scroll-triggered fade-in animations - Linear.app style */
+  .scroll-fade-in {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .scroll-fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .scroll-fade-in-left {
+    opacity: 0;
+    transform: translateX(-30px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .scroll-fade-in-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .scroll-fade-in-right {
+    opacity: 0;
+    transform: translateX(30px);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .scroll-fade-in-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .scroll-scale-in {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .scroll-scale-in.visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* Stagger delays for sequential animations */
+  .scroll-delay-100 {
+    transition-delay: 100ms;
+  }
+
+  .scroll-delay-200 {
+    transition-delay: 200ms;
+  }
+
+  .scroll-delay-300 {
+    transition-delay: 300ms;
+  }
+
+  .scroll-delay-400 {
+    transition-delay: 400ms;
+  }
+
+  .scroll-delay-500 {
+    transition-delay: 500ms;
+  }
+
+  /* Legacy fade-in animations (keep for compatibility) */
   .animate-fade-in {
     animation: fadeIn 0.8s ease-out forwards;
   }
@@ -134,6 +272,22 @@ All colors MUST be HSL.
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  /* Linear.app inspired hover effects */
+  .hover-lift {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* Smooth background transitions */
+  .bg-transition {
+    transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

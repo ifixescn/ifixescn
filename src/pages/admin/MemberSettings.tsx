@@ -39,7 +39,7 @@ export default function MemberSettings() {
   const handleUpdatePointsRule = async (rule: PointsRule) => {
     try {
       setSaving(true);
-      await updatePointsRule(rule.action, rule.points, rule.description, rule.enabled);
+      await updatePointsRule(rule.action, rule.points, rule.description ?? "", rule.enabled);
       toast({
         title: "Saved Successfully",
         description: "Points rule has been updated",

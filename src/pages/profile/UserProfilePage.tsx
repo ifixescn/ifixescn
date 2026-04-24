@@ -24,12 +24,14 @@ import {
   Lock,
 } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function UserProfilePage() {
   const { userId } = useParams<{ userId: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -107,22 +109,22 @@ export default function UserProfilePage() {
       if (profileData?.is_following) {
         await unfollowUser(userId);
         toast({
-          title: "Success",
-          description: "Unfollowed successfully",
+          title: t("auth.success", "Success"),
+          description: t("member.unfollowedSuccess", "Unfollowed successfully"),
         });
       } else {
         await followUser(userId);
         toast({
-          title: "Success",
-          description: "Followed successfully",
+          title: t("auth.success", "Success"),
+          description: t("member.followedSuccess", "Followed successfully"),
         });
       }
       await loadProfileData();
     } catch (error) {
       console.error("Operation failed:", error);
       toast({
-        title: "Error",
-        description: "Operation failed, please try again",
+        title: t("auth.error", "Error"),
+        description: t("member.operationFailed", "Operation failed, please try again"),
         variant: "destructive",
       });
     } finally {
@@ -147,7 +149,7 @@ export default function UserProfilePage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-muted-foreground">Loading...</div>
+          <div className="text-muted-foreground">{t("member.loading", "Loading...")}</div>
         </div>
       </div>
     );
@@ -160,12 +162,12 @@ export default function UserProfilePage() {
           <CardContent className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <Lock className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
+              <h2 className="text-2xl font-bold mb-2">{t("member.accessDenied", "Access Denied")}</h2>
               <p className="text-muted-foreground mb-4">
-                This user's profile is set to private or friends only
+                {t("member.profilePrivate", "This user's profile is set to private or friends only")}
               </p>
               <Button asChild>
-                <Link to="/">Back to Home</Link>
+                <Link to="/">{t("auth.backHome", "Back to Home")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -180,10 +182,10 @@ export default function UserProfilePage() {
         <Card>
           <CardContent className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">User Not Found</h2>
-              <p className="text-muted-foreground mb-4">This user may have been deleted or does not exist</p>
+              <h2 className="text-2xl font-bold mb-2">{t("member.userNotFound", "User Not Found")}</h2>
+              <p className="text-muted-foreground mb-4">{t("member.userDeletedOrNotExist", "This user may have been deleted or does not exist")}</p>
               <Button asChild>
-                <Link to="/">Back to Home</Link>
+                <Link to="/">{t("auth.backHome", "Back to Home")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -203,10 +205,10 @@ export default function UserProfilePage() {
         <Card>
           <CardContent className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">Profile Not Available</h2>
-              <p className="text-muted-foreground mb-4">This user needs to verify their email and upgrade to Silver membership to enable their profile</p>
+              <h2 className="text-2xl font-bold mb-2">{t("member.profileNotAvailable", "Profile Not Available")}</h2>
+              <p className="text-muted-foreground mb-4">{t("member.needSilverMembership", "This user needs to verify their email and upgrade to Silver membership to enable their profile")}</p>
               <Button asChild>
-                <Link to="/">Back to Home</Link>
+                <Link to="/">{t("auth.backHome", "Back to Home")}</Link>
               </Button>
             </div>
           </CardContent>
@@ -243,12 +245,12 @@ export default function UserProfilePage() {
                     {is_following ? (
                       <>
                         <UserMinus className="mr-2 h-4 w-4" />
-                        Unfollow
+                        {t("member.cancelFollow", "Unfollow")}
                       </>
                     ) : (
                       <>
                         <UserPlus className="mr-2 h-4 w-4" />
-                        Follow
+                        {t("member.follow", "Follow")}
                       </>
                     )}
                   </Button>
@@ -256,7 +258,7 @@ export default function UserProfilePage() {
                     <Button asChild variant="outline">
                       <Link to={`/messages/${userId}`}>
                         <MessageSquare className="mr-2 h-4 w-4" />
-                        Message
+                        {t("member.message", "Message")}
                       </Link>
                     </Button>
                   )}
@@ -271,7 +273,7 @@ export default function UserProfilePage() {
                 {getMemberLevelBadge(profile.member_level)}
                 {profile.email_verified && (
                   <Badge variant="outline" className="text-green-600 border-green-600">
-                    ✓ Verified
+                    ✓ {t("member.verified", "Verified")}
                   </Badge>
                 )}
               </div>
@@ -297,7 +299,7 @@ export default function UserProfilePage() {
                 )}
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined {format(new Date(profile.created_at), "MMM yyyy")}</span>
+                  <span>{t("member.joined", "Joined")} {format(new Date(profile.created_at), "MMM yyyy")}</span>
                 </div>
                 {profile.email && (
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -313,19 +315,19 @@ export default function UserProfilePage() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center">
                   <div className="text-2xl font-bold">{followers_count}</div>
-                  <div className="text-sm text-muted-foreground">Followers</div>
+                  <div className="text-sm text-muted-foreground">{t("member.followers", "Followers")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold">{following_count}</div>
-                  <div className="text-sm text-muted-foreground">Following</div>
+                  <div className="text-sm text-muted-foreground">{t("member.following", "Following")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold">{profile.total_articles}</div>
-                  <div className="text-sm text-muted-foreground">Articles</div>
+                  <div className="text-sm text-muted-foreground">{t("member.articles", "Articles")}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold">{profile.total_questions}</div>
-                  <div className="text-sm text-muted-foreground">Q&A</div>
+                  <div className="text-sm text-muted-foreground">{t("member.qa", "Q&A")}</div>
                 </div>
               </div>
             </div>
@@ -338,15 +340,15 @@ export default function UserProfilePage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="articles">
             <FileText className="mr-2 h-4 w-4" />
-            Articles ({articles.length})
+            {t("member.articles", "Articles")} ({articles.length})
           </TabsTrigger>
           <TabsTrigger value="questions">
             <MessageCircle className="mr-2 h-4 w-4" />
-            Q&A ({questions.length})
+            {t("member.qa", "Q&A")} ({questions.length})
           </TabsTrigger>
           <TabsTrigger value="sns">
             <Users className="mr-2 h-4 w-4" />
-            Posts ({sns_posts.length})
+            {t("member.postsTimeline", "Posts")} ({sns_posts.length})
           </TabsTrigger>
         </TabsList>
 
@@ -354,7 +356,7 @@ export default function UserProfilePage() {
           {articles.length === 0 ? (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <p className="text-muted-foreground">No articles yet</p>
+                <p className="text-muted-foreground">{t("member.noArticlesYet", "No articles yet")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -374,7 +376,7 @@ export default function UserProfilePage() {
                     )}
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>{format(new Date(article.created_at), "yyyy-MM-dd")}</span>
-                      <span>{article.view_count} views</span>
+                      <span>{article.view_count} {t("member.views", "views")}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -404,8 +406,8 @@ export default function UserProfilePage() {
                   <CardContent>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>{format(new Date(question.created_at), "yyyy-MM-dd")}</span>
-                      <span>{question.answer_count || 0} answers</span>
-                      <span>{question.view_count} views</span>
+                      <span>{question.answer_count || 0} {t("member.answers", "answers")}</span>
+                      <span>{question.view_count} {t("member.views", "views")}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -418,7 +420,7 @@ export default function UserProfilePage() {
           {sns_posts.length === 0 ? (
             <Card>
               <CardContent className="flex items-center justify-center py-12">
-                <p className="text-muted-foreground">No posts yet</p>
+                <p className="text-muted-foreground">{t("member.noPostsYet", "No posts yet")}</p>
               </CardContent>
             </Card>
           ) : (

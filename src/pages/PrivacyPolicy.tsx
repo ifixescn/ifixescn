@@ -383,14 +383,14 @@ export default function PrivacyPolicy() {
                   <Mail className="w-5 h-5 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">privacy@ifixes.com</p>
+                    <p className="font-medium">dps@ifixes.com.cn</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg">
                   <Globe className="w-5 h-5 text-primary" />
                   <div>
                     <p className="text-sm text-muted-foreground">Website</p>
-                    <p className="font-medium">www.ifixes.com</p>
+                    <p className="font-medium">www.ifixes.com.cn</p>
                   </div>
                 </div>
               </div>
@@ -405,7 +405,7 @@ export default function PrivacyPolicy() {
             If you have any questions or concerns about our privacy practices, we're here to help.
           </p>
           <a
-            href="mailto:privacy@ifixes.com"
+            href="mailto:dps@ifixes.com.cn"
             className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
           >
             <Mail className="w-5 h-5" />

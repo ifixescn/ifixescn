@@ -6,20 +6,39 @@ import { Badge } from "@/components/ui/badge";
 import { getDownloadsByCategory, getCategoryById, getSiteSetting } from "@/db/api";
 import type { Download, Category } from "@/types";
 import { Download as DownloadIcon, Calendar, ArrowLeft } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
+import TranslatedText from "@/components/common/TranslatedText";
 
 export default function DownloadsByCategory() {
   const { categoryId } = useParams<{ categoryId: string }>();
+  const { t, translateText, isDefaultLang, currentLang } = useTranslation();
   const [downloads, setDownloads] = useState<Download[]>([]);
   const [category, setCategory] = useState<Category | null>(null);
   const [siteName, setSiteName] = useState("");
   const [loading, setLoading] = useState(true);
+  // 翻译后的分类字段
+  const [translatedCategoryName, setTranslatedCategoryName] = useState<string>("");
+  const [translatedCategoryDesc, setTranslatedCategoryDesc] = useState<string>("");
 
   useEffect(() => {
     if (categoryId) {
       loadData();
     }
   }, [categoryId]);
+
+  // 语言切换时同步翻译分类名称和描述
+  useEffect(() => {
+    if (!category) return;
+    setTranslatedCategoryName(category.name);
+    setTranslatedCategoryDesc(category.description || "");
+    if (isDefaultLang) return;
+    let cancelled = false;
+    translateText(category.name).then((r) => { if (!cancelled) setTranslatedCategoryName(r); });
+    if (category.description) translateText(category.description).then((r) => { if (!cancelled) setTranslatedCategoryDesc(r); });
+    return () => { cancelled = true; };
+  }, [category, currentLang, isDefaultLang, translateText]);
 
   async function loadData() {
     try {
@@ -50,16 +69,39 @@ export default function DownloadsByCategory() {
   return (
     <div className="min-h-screen py-12 px-4">
       <PageMeta 
-        title={`${category?.name || 'Downloads'} - ${siteName || 'iFixes'}`}
-        description={category?.description || `Browse ${category?.name || 'downloads'}`}
+        title={`${translatedCategoryName || category?.name || 'Downloads'} - ${siteName || 'iFixes'}`}
+        description={translatedCategoryDesc || category?.description || `Browse ${category?.name || 'downloads'}`}
         keywords={category?.seo_keywords || category?.name || 'downloads'}
       />
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement": [
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Downloads", "item": `${window.location.origin}/downloads` },
+              { "@type": "ListItem", "position": 3, "name": category?.name || "Downloads", "item": window.location.href }
+            ]
+          })}
+        </script>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            "name": category?.name,
+            "description": category?.description || `Browse ${category?.name} downloads`,
+            "url": window.location.href,
+            "isPartOf": { "@type": "WebSite", "name": siteName || "iFixes", "url": window.location.origin }
+          })}
+        </script>
+      </Helmet>
       <div className="container mx-auto max-w-6xl">
         <div className="mb-8">
           <Button variant="ghost" asChild className="mb-4">
             <Link to="/downloads">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Download List
+              {t("cat.backToDownloadList", "Back to Download List")}
             </Link>
           </Button>
           
@@ -67,18 +109,18 @@ export default function DownloadsByCategory() {
             <DownloadIcon className="h-8 w-8 text-primary" />
             <div>
               <h1 className="text-3xl font-bold">
-                {category?.name || "Category Downloads"}
+                {translatedCategoryName || category?.name || "Category Downloads"}
               </h1>
               {category?.description && (
                 <p className="text-muted-foreground mt-2">
-                  {category.description}
+                  {translatedCategoryDesc || category.description}
                 </p>
               )}
             </div>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>{downloads.length} downloads</span>
+            <span>{downloads.length} {t("cat.downloadsCount", "downloads")}</span>
           </div>
         </div>
 
@@ -86,7 +128,7 @@ export default function DownloadsByCategory() {
           <Card>
             <CardContent className="py-12 text-center">
               <DownloadIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No downloads in this category yet</p>
+              <p className="text-muted-foreground">{t("cat.noDownloads", "No downloads in this category yet")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -100,7 +142,7 @@ export default function DownloadsByCategory() {
                         to={`/downloads/${download.id}`}
                         className="hover:text-primary transition-colors"
                       >
-                        {download.title}
+                        <TranslatedText text={download.title} />
                       </Link>
                     </CardTitle>
                     {download.file_size && (
@@ -113,7 +155,7 @@ export default function DownloadsByCategory() {
                 <CardContent className="space-y-4">
                   {download.description && (
                     <p className="text-muted-foreground line-clamp-2">
-                      {download.description}
+                      <TranslatedText text={download.description} />
                     </p>
                   )}
                   

@@ -8,8 +8,11 @@ import { getVideos, getCategories } from "@/db/api";
 import type { Video, Category } from "@/types";
 import PageMeta from "@/components/common/PageMeta";
 import VideoThumbnail from "@/components/common/VideoThumbnail";
+import TranslatedText from "@/components/common/TranslatedText";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 export default function Videos() {
+  const { t } = useTranslation();
   const [videos, setVideos] = useState<Video[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,9 +61,9 @@ export default function Videos() {
         keywords="repair videos, repair tutorials, video guides, repair demonstrations, how-to videos, repair training, video lessons"
       />
       <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-4">Video Center</h1>
+        <h1 className="text-4xl font-bold mb-4">{t("videos.title", "Video Center")}</h1>
         <p className="text-muted-foreground">
-          Watch various tutorials and demo videos
+          {t("videos.watchNow", "Watch various tutorials and demo videos")}
         </p>
       </div>
 
@@ -71,7 +74,7 @@ export default function Videos() {
             variant={selectedCategory === "" ? "default" : "outline"}
             onClick={() => setSelectedCategory("")}
           >
-            All
+            {t("videos.allCategories", "All")}
           </Button>
           {categories.map((category) => (
             <Button
@@ -79,7 +82,7 @@ export default function Videos() {
               variant={selectedCategory === category.id ? "default" : "outline"}
               onClick={() => setSelectedCategory(category.id)}
             >
-              {category.name}
+              <TranslatedText text={category.name} />
             </Button>
           ))}
         </div>
@@ -89,7 +92,7 @@ export default function Videos() {
       {videos.length === 0 ? (
         <div className="text-center py-12">
           <VideoIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-          <p className="text-muted-foreground">No videos yet</p>
+          <p className="text-muted-foreground">{t("videos.noVideos", "No videos yet")}</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-6">
@@ -98,7 +101,7 @@ export default function Videos() {
               <div className="relative aspect-video bg-muted">
                 <VideoThumbnail
                   videoUrl={video.video_url}
-                  coverImage={video.cover_image}
+                  coverImage={video.cover_image ?? undefined}
                   title={video.title}
                 />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
@@ -117,11 +120,13 @@ export default function Videos() {
               <CardHeader className="p-3 xl:p-6">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-sm xl:text-lg mb-1 xl:mb-2 line-clamp-2">{video.title}</CardTitle>
+                    <CardTitle className="text-sm xl:text-lg mb-1 xl:mb-2 line-clamp-2">
+                      <TranslatedText text={video.title} />
+                    </CardTitle>
                     {video.category_id && (
                       <Link to={`/videos/category/${video.category_id}`}>
                         <Badge variant="secondary" className="mb-1 xl:mb-2 hover:bg-secondary/80 cursor-pointer text-xs xl:text-sm px-1.5 xl:px-2.5 py-0 xl:py-0.5">
-                          {categories.find((c) => c.id === video.category_id)?.name}
+                          <TranslatedText text={categories.find((c) => c.id === video.category_id)?.name || ""} />
                         </Badge>
                       </Link>
                     )}
@@ -131,13 +136,13 @@ export default function Videos() {
               <CardContent className="p-3 pt-0 xl:p-6 xl:pt-0">
                 {video.description && (
                   <p className="text-xs xl:text-sm text-muted-foreground mb-2 xl:mb-4 line-clamp-2">
-                    {video.description}
+                    <TranslatedText text={video.description} />
                   </p>
                 )}
                 <div className="flex items-center justify-between text-xs xl:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3 xl:h-4 xl:w-4" />
-                    {video.view_count} views
+                    {video.view_count} {t("videos.views", "views")}
                   </span>
                 </div>
               </CardContent>

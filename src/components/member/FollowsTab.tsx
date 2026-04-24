@@ -14,6 +14,7 @@ import {
   checkIsFollowing,
 } from "@/db/api";
 import type { MemberFollowWithProfile } from "@/types";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 interface FollowsTabProps {
   userId: string;
@@ -21,6 +22,7 @@ interface FollowsTabProps {
 
 export default function FollowsTab({ userId }: FollowsTabProps) {
   const { toast } = useToast();
+  const { t } = useTranslation();
   const [followingList, setFollowingList] = useState<MemberFollowWithProfile[]>([]);
   const [followerList, setFollowerList] = useState<MemberFollowWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,7 +46,8 @@ export default function FollowsTab({ userId }: FollowsTabProps) {
       const followerIds = followers.data.map((f: MemberFollowWithProfile) => f.follower?.id).filter(Boolean);
       const statusMap: Record<string, boolean> = {};
       await Promise.all(
-        followerIds.map(async (id: string) => {
+        followerIds.map(async (id: string | undefined) => {
+          if (!id) return;
           const isFollowing = await checkIsFollowing(userId, id);
           statusMap[id] = isFollowing;
         })
@@ -142,9 +145,9 @@ export default function FollowsTab({ userId }: FollowsTabProps) {
                 </p>
               )}
               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                <span>Follow {user.following_count || 0}</span>
-                <span>Followers {user.follower_count || 0}</span>
-                <span>Posts {user.post_count || 0}</span>
+                <span>{t("member.followingCount", "Follow")} {user.following_count || 0}</span>
+                <span>{t("member.followersCount", "Followers")} {user.follower_count || 0}</span>
+                <span>{t("member.postsCount", "Posts")} {user.post_count || 0}</span>
               </div>
             </div>
           </div>
@@ -160,12 +163,12 @@ export default function FollowsTab({ userId }: FollowsTabProps) {
                 {isFollowing ? (
                   <>
                     <UserMinus className="h-4 w-4 mr-1" />
-                    CancelFollow
+                    {t("member.cancelFollow", "Unfollow")}
                   </>
                 ) : (
                   <>
                     <UserPlus className="h-4 w-4 mr-1" />
-                    Follow
+                    {t("member.follow", "Follow")}
                   </>
                 )}
               </Button>
@@ -180,7 +183,7 @@ export default function FollowsTab({ userId }: FollowsTabProps) {
     return (
       <Card>
         <CardContent className="py-8">
-          <p className="text-center text-muted-foreground">Loading...</p>
+          <p className="text-center text-muted-foreground">{t("member.loading", "Loading...")}</p>
         </CardContent>
       </Card>
     );
@@ -190,26 +193,26 @@ export default function FollowsTab({ userId }: FollowsTabProps) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Follows & Followers</CardTitle>
-          <CardDescription>Manage your social connections</CardDescription>
+          <CardTitle>{t("member.followsAndFollowers", "Follows & Followers")}</CardTitle>
+          <CardDescription>{t("member.manageSocial", "Manage your social connections")}</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="following">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="following">
                 <Users className="h-4 w-4 mr-2" />
-                Follow ({followingList.length})
+                {t("member.following", "Following")} ({followingList.length})
               </TabsTrigger>
               <TabsTrigger value="followers">
                 <Users className="h-4 w-4 mr-2" />
-                Followers ({followerList.length})
+                {t("member.followers", "Followers")} ({followerList.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="following" className="mt-4 space-y-3">
               {followingList.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  You haven't followed anyone yet
+                  {t("member.notFollowedAnyone", "You haven't followed anyone yet")}
                 </p>
               ) : (
                 followingList.map((follow) =>
@@ -221,7 +224,7 @@ export default function FollowsTab({ userId }: FollowsTabProps) {
             <TabsContent value="followers" className="mt-4 space-y-3">
               {followerList.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  No one is following you yet
+                  {t("member.noFollowersYet", "No one is following you yet")}
                 </p>
               ) : (
                 followerList.map((follow) => {

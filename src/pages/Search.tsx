@@ -36,6 +36,7 @@ interface VideoItem {
   category?: { name: string };
 }
 import PageMeta from "@/components/common/PageMeta";
+import { useTranslation } from "@/contexts/TranslationContext";
 
 // Helper function to strip HTML tags and get plain text
 const stripHtml = (html: string): string => {
@@ -106,6 +107,7 @@ interface SearchKeyword {
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { t } = useTranslation();
   const query = searchParams.get("q") || "";
   const [searchQuery, setSearchQuery] = useState(query);
   const [loading, setLoading] = useState(false);
@@ -252,7 +254,7 @@ export default function SearchPage() {
                     <Input
                       ref={searchInputRef}
                       type="text"
-                      placeholder="Search for downloads, videos, products, or ask questions..."
+                      placeholder={t("search.placeholder", "Search for downloads, videos, products, or ask questions...")}
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={handleInputFocus}
@@ -280,10 +282,10 @@ export default function SearchPage() {
                         {loading ? (
                           <>
                             <Sparkles className="h-4 w-4 mr-2 animate-spin" />
-                            Searching...
+                            {t("search.searching", "Searching...")}
                           </>
                         ) : (
-                          "Search"
+                          t("search.search", "Search")
                         )}
                       </Button>
                     </div>
@@ -299,7 +301,7 @@ export default function SearchPage() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center gap-2">
                             <History className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-sm font-medium">Recent Searches</span>
+                            <span className="text-sm font-medium">{t("search.recentSearches", "Recent Searches")}</span>
                           </div>
                           <Button
                             variant="ghost"
@@ -307,7 +309,7 @@ export default function SearchPage() {
                             onClick={handleClearHistory}
                             className="h-6 text-xs"
                           >
-                            Clear
+                            {t("search.clear", "Clear")}
                           </Button>
                         </div>
                         <div className="space-y-1">
@@ -330,7 +332,7 @@ export default function SearchPage() {
                       <div className="p-4">
                         <div className="flex items-center gap-2 mb-3">
                           <TrendingUp className="h-4 w-4 text-primary" />
-                          <span className="text-sm font-medium">Trending Searches</span>
+                          <span className="text-sm font-medium">{t("search.trendingSearches", "Trending Searches")}</span>
                         </div>
                         <div className="space-y-1">
                           {hotKeywords.slice(0, 5).map((keyword) => (
@@ -357,7 +359,7 @@ export default function SearchPage() {
                     <div className="flex items-center gap-2 mb-3">
                       <TrendingUp className="h-4 w-4 text-primary" />
                       <span className="text-sm font-medium text-muted-foreground">
-                        Trending Searches
+                        {t("search.trendingSearches", "Trending Searches")}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -405,7 +407,7 @@ export default function SearchPage() {
                 className="gap-2"
               >
                 <Filter className="h-4 w-4" />
-                Filters
+                {t("search.filters", "Filters")}
               </Button>
             </div>
 
@@ -434,23 +436,23 @@ export default function SearchPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid w-full grid-cols-5 h-auto p-1">
                   <TabsTrigger value="all" className="flex flex-col gap-1 py-3">
-                    <span className="font-semibold">All</span>
+                    <span className="font-semibold">{t("search.all", "All")}</span>
                     <span className="text-xs text-muted-foreground">{totalResults}</span>
                   </TabsTrigger>
                   <TabsTrigger value="downloads" className="flex flex-col gap-1 py-3">
-                    <span className="font-semibold">Downloads</span>
+                    <span className="font-semibold">{t("search.downloads", "Downloads")}</span>
                     <span className="text-xs text-muted-foreground">{downloads.length}</span>
                   </TabsTrigger>
                   <TabsTrigger value="videos" className="flex flex-col gap-1 py-3">
-                    <span className="font-semibold">Videos</span>
+                    <span className="font-semibold">{t("search.videos", "Videos")}</span>
                     <span className="text-xs text-muted-foreground">{videos.length}</span>
                   </TabsTrigger>
                   <TabsTrigger value="products" className="flex flex-col gap-1 py-3">
-                    <span className="font-semibold">Products</span>
+                    <span className="font-semibold">{t("search.products", "Products")}</span>
                     <span className="text-xs text-muted-foreground">{products.length}</span>
                   </TabsTrigger>
                   <TabsTrigger value="questions" className="flex flex-col gap-1 py-3">
-                    <span className="font-semibold">Q&A</span>
+                    <span className="font-semibold">{t("search.qa", "Q&A")}</span>
                     <span className="text-xs text-muted-foreground">{questions.length}</span>
                   </TabsTrigger>
                 </TabsList>
@@ -463,12 +465,12 @@ export default function SearchPage() {
                         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-muted mb-4">
                           <Search className="h-8 w-8 text-muted-foreground" />
                         </div>
-                        <h3 className="text-lg font-semibold mb-2">No Results Found</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t("search.noResults", "No Results Found")}</h3>
                         <p className="text-muted-foreground mb-4">
-                          Try adjusting your search terms or browse our categories
+                          {t("search.noResultsHint", "Try adjusting your search terms or browse our categories")}
                         </p>
                         <Button variant="outline" asChild>
-                          <Link to="/">Back to Home</Link>
+                          <Link to="/">{t("auth.backHome", "Back to Home")}</Link>
                         </Button>
                       </CardContent>
                     </Card>
@@ -479,7 +481,7 @@ export default function SearchPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Download className="h-5 w-5 text-primary" />
-                        <h3 className="text-xl font-bold">Downloads</h3>
+                        <h3 className="text-xl font-bold">{t("search.downloads", "Downloads")}</h3>
                         <Badge variant="secondary">{downloads.length}</Badge>
                       </div>
                       <div className="grid gap-4">
@@ -538,7 +540,7 @@ export default function SearchPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Video className="h-5 w-5 text-primary" />
-                        <h3 className="text-xl font-bold">Videos</h3>
+                        <h3 className="text-xl font-bold">{t("search.videos", "Videos")}</h3>
                         <Badge variant="secondary">{videos.length}</Badge>
                       </div>
                       <div className="grid gap-4">
@@ -610,7 +612,7 @@ export default function SearchPage() {
                     <div className="space-y-4">
                       <div className="flex items-center gap-2 mb-4">
                         <Package className="h-5 w-5 text-primary" />
-                        <h3 className="text-xl font-bold">Products</h3>
+                        <h3 className="text-xl font-bold">{t("search.products", "Products")}</h3>
                         <Badge variant="secondary">{products.length}</Badge>
                       </div>
                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -691,7 +693,7 @@ export default function SearchPage() {
                     <Card className="border-dashed">
                       <CardContent className="py-16 text-center">
                         <Download className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No Downloads Found</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t("search.noDownloads", "No Downloads Found")}</h3>
                         <p className="text-muted-foreground">
                           Try different keywords or browse all downloads
                         </p>
@@ -830,7 +832,7 @@ export default function SearchPage() {
                     <Card className="border-dashed">
                       <CardContent className="py-16 text-center">
                         <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No Products Found</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t("search.noProducts", "No Products Found")}</h3>
                         <p className="text-muted-foreground">
                           Try different keywords or browse all products
                         </p>
@@ -868,7 +870,7 @@ export default function SearchPage() {
                     <Card className="border-dashed">
                       <CardContent className="py-16 text-center">
                         <MessageCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold mb-2">No Q&A Found</h3>
+                        <h3 className="text-lg font-semibold mb-2">{t("search.noQA", "No Q&A Found")}</h3>
                         <p className="text-muted-foreground">
                           Try different keywords or browse all questions
                         </p>

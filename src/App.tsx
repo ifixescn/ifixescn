@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SEOProvider } from '@/contexts/SEOContext';
+import { TranslationProvider } from '@/contexts/TranslationContext';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/db/supabase';
@@ -85,7 +86,8 @@ function AppContent() {
         "/downloads/*",
         "/videos",
         "/videos/*",
-        "/yiyuan"
+        "/yiyuan",
+        "/yiyuan/"
       ]}>
         {isStandalonePage ? (
           // 独立页面布局（无 Header 和 Footer）
@@ -159,9 +161,11 @@ function App() {
       <HelmetProvider>
         <SEOProvider>
           <AuthProvider client={supabase}>
-            <Router>
-              <AppContent />
-            </Router>
+            <TranslationProvider>
+              <Router>
+                <AppContent />
+              </Router>
+            </TranslationProvider>
           </AuthProvider>
         </SEOProvider>
       </HelmetProvider>

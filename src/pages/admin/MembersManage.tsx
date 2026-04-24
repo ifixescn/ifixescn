@@ -1212,7 +1212,7 @@ export default function MembersManage() {
                         onClick={() => {
                           const newPoints = prompt("请输入新的积分值:", rule.points.toString());
                           if (newPoints !== null) {
-                            updatePointsRule(rule.action, parseInt(newPoints), rule.description, rule.enabled)
+                            updatePointsRule(rule.action, parseInt(newPoints), rule.description ?? "", rule.enabled)
                               .then(() => {
                                 toast({ title: "成功", description: "积分规则已更新" });
                                 loadData();
