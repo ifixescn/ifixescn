@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SEOProvider } from '@/contexts/SEOContext';
@@ -35,7 +35,36 @@ function AppContent() {
   const location = useLocation();
   
   // Check if it's a standalone page (no Header and Footer needed)
-  const isStandalonePage = location.pathname === '/yiyuan' || location.pathname === '/yiyuan/';
+  const isStandalonePage = location.pathname.startsWith('/yiyuan');
+
+  // 白名单用 useMemo 稳定引用，避免每次渲染产生新数组引起 RequireAuth useEffect 反复触发
+  const whiteList = useMemo(() => [
+    "/",
+    "/login",
+    "/forgot-password",
+    "/reset-password",
+    "/verify-email",
+    "/search",
+    "/sitemap.xml",
+    "/robots.txt",
+    "/5ad6780caefa67ded91cac16c02894ff.txt",
+    "/0906d620653c7d4cc5c0bbfdd6b190ad.txt",
+    "/MP_verify_*.txt",
+    "/*.txt",
+    "/privacy",
+    "/terms",
+    "/articles",
+    "/articles/*",
+    "/products",
+    "/products/*",
+    "/questions",
+    "/questions/*",
+    "/downloads",
+    "/downloads/*",
+    "/videos",
+    "/videos/*",
+    "/yiyuan/*",
+  ], []);
 
   // Hide loading screen after app is loaded
   useEffect(() => {
@@ -61,34 +90,7 @@ function AppContent() {
       <GlobalSEO />
       <ScrollToTop />
       <Toaster />
-      <RequireAuth whiteList={[
-        "/", 
-        "/login",
-        "/forgot-password",
-        "/reset-password",
-        "/verify-email",
-        "/search",
-        "/sitemap.xml",
-        "/robots.txt",
-        "/5ad6780caefa67ded91cac16c02894ff.txt",
-        "/0906d620653c7d4cc5c0bbfdd6b190ad.txt",
-        "/MP_verify_*.txt",
-        "/*.txt",
-        "/privacy",
-        "/terms",
-        "/articles", 
-        "/articles/*", 
-        "/products", 
-        "/products/*", 
-        "/questions", 
-        "/questions/*",
-        "/downloads",
-        "/downloads/*",
-        "/videos",
-        "/videos/*",
-        "/yiyuan",
-        "/yiyuan/"
-      ]}>
+      <RequireAuth whiteList={whiteList}>
         {isStandalonePage ? (
           // 独立页面布局（无 Header 和 Footer）
           <Routes>

@@ -27,7 +27,9 @@ export function RequireAuth({ children, whiteList = [] }: RequireAuthProps) {
       // 处理通配符路径 (例如: /articles/*)
       if (path.endsWith("/*")) {
         const basePath = path.slice(0, -2);
-        return location.pathname.startsWith(basePath);
+        // 同时兼容 /basePath 和 /basePath/ 两种形式
+        return location.pathname === basePath ||
+          location.pathname.startsWith(basePath + "/");
       }
       // 处理文件扩展名通配符 (例如: /*.txt, /MP_verify_*.txt)
       if (path.includes("*")) {
@@ -37,8 +39,10 @@ export function RequireAuth({ children, whiteList = [] }: RequireAuthProps) {
         const regex = new RegExp(`^${regexPattern}$`);
         return regex.test(location.pathname);
       }
-      // 精确匹配
-      return location.pathname === path;
+      // 精确匹配（同时兼容尾部斜杠差异）
+      const normalizedCurrent = location.pathname.replace(/\/+$/, '') || '/';
+      const normalizedPath = path.replace(/\/+$/, '') || '/';
+      return normalizedCurrent === normalizedPath;
     });
 
     if (!user && !isWhitelisted) {
