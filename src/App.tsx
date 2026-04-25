@@ -35,7 +35,7 @@ function AppContent() {
   const location = useLocation();
   
   // Check if it's a standalone page (no Header and Footer needed)
-  const isStandalonePage = location.pathname === '/yiyuan';
+  const isStandalonePage = location.pathname === '/yiyuan' || location.pathname === '/yiyuan/';
 
   // Hide loading screen after app is loaded
   useEffect(() => {
