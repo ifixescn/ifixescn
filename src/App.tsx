@@ -86,7 +86,8 @@ function AppContent() {
         "/downloads/*",
         "/videos",
         "/videos/*",
-        "/yiyuan"
+        "/yiyuan",
+        "/yiyuan/*",
       ]}>
         {isStandalonePage ? (
           // 独立页面布局（无 Header 和 Footer）
