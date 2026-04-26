@@ -85,73 +85,53 @@ function AppContent() {
     console.log('[App] User Agent:', navigator.userAgent);
   }, []);
 
+  // 渲染路由列表（复用逻辑）
+  const renderRoutes = () =>
+    routes.map((route, index) => {
+      if (route.children) {
+        return (
+          <Route key={index} path={route.path} element={route.element}>
+            {route.children.map((child, childIndex) => (
+              <Route key={childIndex} path={child.path} element={child.element} />
+            ))}
+          </Route>
+        );
+      }
+      return <Route key={index} path={route.path} element={route.element} />;
+    });
+
+  // yiyuan 为完全公开页面，直接绕过 RequireAuth，避免任何认证时序问题
+  if (isStandalonePage) {
+    return (
+      <>
+        <GlobalSEO />
+        <ScrollToTop />
+        <Toaster />
+        <Routes>
+          {renderRoutes()}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </>
+    );
+  }
+
   return (
     <>
       <GlobalSEO />
       <ScrollToTop />
       <Toaster />
       <RequireAuth whiteList={whiteList}>
-        {isStandalonePage ? (
-          // 独立页面布局（无 Header 和 Footer）
-          <Routes>
-            {routes.map((route, index) => {
-              if (route.children) {
-                return (
-                  <Route key={index} path={route.path} element={route.element}>
-                    {route.children.map((child, childIndex) => (
-                      <Route
-                        key={childIndex}
-                        path={child.path}
-                        element={child.element}
-                      />
-                    ))}
-                  </Route>
-                );
-              }
-              return (
-                <Route
-                  key={index}
-                  path={route.path}
-                  element={route.element}
-                />
-              );
-            })}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        ) : (
-          // 标准页面布局（包含 Header 和 Footer）
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <main className="flex-grow">
-              <Routes>
-                {routes.map((route, index) => {
-                  if (route.children) {
-                    return (
-                      <Route key={index} path={route.path} element={route.element}>
-                        {route.children.map((child, childIndex) => (
-                          <Route
-                            key={childIndex}
-                            path={child.path}
-                            element={child.element}
-                          />
-                        ))}
-                      </Route>
-                    );
-                  }
-                  return (
-                    <Route
-                      key={index}
-                      path={route.path}
-                      element={route.element}
-                    />
-                  );
-                })}
-                <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </main>
-            <Footer />
-          </div>
-        )}
+        {/* 标准页面布局（包含 Header 和 Footer）*/}
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-grow">
+            <Routes>
+              {renderRoutes()}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
       </RequireAuth>
     </>
   );
