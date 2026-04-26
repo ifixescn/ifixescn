@@ -63,6 +63,7 @@ function AppContent() {
     "/downloads/*",
     "/videos",
     "/videos/*",
+    "/yiyuan",
     "/yiyuan/*",
   ], []);
 
