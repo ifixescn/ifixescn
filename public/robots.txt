@@ -1,4 +1,4 @@
-# robots.txt for iFixes CMS
+# robots.txt for iFixes (https://www.ifixescn.com)
 # Allow all search engines to crawl the site
 
 User-agent: *
@@ -9,12 +9,28 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /login
 Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /member/
+Disallow: /my-articles
 
-# Allow crawling of public content
+# Crawl-delay for well-behaved bots
+Crawl-delay: 1
+
+# Allow crawling of all public content
 Allow: /articles/
 Allow: /products/
 Allow: /questions/
+Allow: /downloads/
+Allow: /videos/
 Allow: /search
+Allow: /yiyuan
+Allow: /privacy
+Allow: /terms
+Allow: /sitemap.xml
+Allow: /sitemap-index.xml
 
-# Sitemap location
-Sitemap: https://www.ifixes.com/sitemap.xml
+# Sitemap locations
+Sitemap: https://www.ifixescn.com/sitemap.xml
+Sitemap: https://www.ifixescn.com/sitemap-index.xml

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- 静态页面 sitemap -->
+  <sitemap>
+    <loc>https://www.ifixescn.com/sitemap.xml</loc>
+  </sitemap>
+  <!-- 动态内容 sitemap（由 /sitemap 路由动态生成） -->
+  <sitemap>
+    <loc>https://www.ifixescn.com/sitemap</loc>
+  </sitemap>
+</sitemapindex>

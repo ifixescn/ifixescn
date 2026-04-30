@@ -1,0 +1,2 @@
+ALTER PUBLICATION supabase_realtime ADD TABLE language_settings;
+ALTER PUBLICATION supabase_realtime ADD TABLE translation_engine_settings;
