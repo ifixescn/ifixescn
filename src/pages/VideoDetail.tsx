@@ -1,13 +1,10 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Eye, Calendar, AlertCircle, Play, RefreshCw } from "lucide-react";
+import { Eye, Calendar, AlertCircle, Play, Clock, ArrowLeft, RefreshCw, LogIn } from "lucide-react";
 import { getVideoById, incrementVideoViewCount, getCategories, getModuleSetting } from "@/db/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 import type { Video as VideoType, Category, ModuleSetting } from "@/types";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
 import VideoPlayer from "@/components/ui/video";
@@ -15,6 +12,8 @@ import { Helmet } from "react-helmet-async";
 import PageMeta from "@/components/common/PageMeta";
 import { useTranslation } from "@/contexts/TranslationContext";
 import TranslatedText from "@/components/common/TranslatedText";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function VideoDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,26 +25,22 @@ export default function VideoDetail() {
   const [viewCounted, setViewCounted] = useState(false);
   const [canWatch, setCanWatch] = useState(false);
   const [videoError, setVideoError] = useState(false);
-  const [useCustomPlayer, setUseCustomPlayer] = useState(true);
-  // 翻译后的字段
+  // Translated fields
   const [translatedTitle, setTranslatedTitle] = useState<string>("");
   const [translatedDescription, setTranslatedDescription] = useState<string>("");
   const [translatedContent, setTranslatedContent] = useState<string>("");
   const [translatedCategoryName, setTranslatedCategoryName] = useState<string>("");
   const { profile } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Record browsing history
   useRecordBrowsing("video", video?.id, video?.title);
 
   useEffect(() => {
-    if (id) {
-      loadData();
-    }
+    if (id) loadData();
   }, [id]);
 
-  // 语言切换时同步翻译视频字段
+  // Sync translations when language switches
   useEffect(() => {
     if (!video) return;
     setTranslatedTitle(video.title || "");
@@ -59,7 +54,6 @@ export default function VideoDetail() {
     return () => { cancelled = true; };
   }, [video, currentLang, isDefaultLang, translateText]);
 
-  // 语言切换时同步翻译分类名称
   useEffect(() => {
     if (!category) return;
     setTranslatedCategoryName(category.name);
@@ -71,96 +65,83 @@ export default function VideoDetail() {
 
   const loadData = async () => {
     if (!id) return;
-
     try {
       setLoading(true);
       const [videoData, moduleSettingData] = await Promise.all([
         getVideoById(id),
-        getModuleSetting("video")
+        getModuleSetting("video"),
       ]);
-      
       setVideo(videoData);
       setModuleSetting(moduleSettingData);
 
-      // Check whether can watch
       const requireLogin = moduleSettingData?.custom_settings?.require_login_to_watch === true;
       const hasPermission = !requireLogin || !!profile;
       setCanWatch(hasPermission);
 
       if (videoData?.category_id) {
-        const categories = await getCategories("video");
-        const cat = categories.find((c) => c.id === videoData.category_id);
-        setCategory(cat || null);
+        const cats = await getCategories("video");
+        setCategory(cats.find((c) => c.id === videoData.category_id) || null);
       }
 
-      // Increase views (only once, when authorized to watch)
       if (videoData && !viewCounted && hasPermission) {
         await incrementVideoViewCount(id);
         setViewCounted(true);
       }
     } catch (error) {
-      console.error("Failed to load data:", error);
-      toast({
-        title: t("detail.videoLoadFailed", "Loading Failed"),
-        description: t("detail.videoLoadFailedDesc", "Failed to load video details. Please try again."),
-        variant: "destructive",
+      console.error("Failed to load video:", error);
+      toast.error(t("detail.videoLoadFailed", "Load failed"), {
+        description: t("detail.videoLoadFailedDesc", "Could not load video details. Please try again later."),
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVideoError = () => {
-    setVideoError(true);
-    toast({
-      title: t("detail.videoPlayError", "Video Playback Error"),
-      description: t("detail.videoPlayErrorDesc", "Unable to load video. Please check your network connection or try again later."),
-      variant: "destructive",
-    });
-  };
-
-  const handleRetry = () => {
-    setVideoError(false);
-    setUseCustomPlayer(!useCustomPlayer);
-  };
-
   const formatDuration = (seconds: number) => {
     if (!seconds) return "0:00";
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${m}:${s.toString().padStart(2, "0")}`;
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric", month: "long", day: "numeric",
     });
-  };
 
+  /* ---------- Loading skeleton ---------- */
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <div className="text-lg text-muted-foreground">{t("detail.loadingVideo", "Loading video...")}</div>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
+          <Skeleton className="h-6 w-32 bg-muted" />
+          <Skeleton className="w-full aspect-video rounded-xl bg-muted" />
+          <Skeleton className="h-8 w-2/3 bg-muted" />
+          <Skeleton className="h-4 w-full bg-muted" />
+          <Skeleton className="h-4 w-4/5 bg-muted" />
         </div>
       </div>
     );
   }
 
+  /* ---------- Video not found ---------- */
   if (!video) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {t("detail.videoNotFound", "Video not found. The video may have been removed or the link is incorrect.")}
-          </AlertDescription>
-        </Alert>
-        <div className="mt-4">
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+            <AlertCircle className="h-8 w-8 text-destructive" />
+          </div>
+          <h2 className="text-xl font-semibold">
+            {t("detail.videoNotFound", "Video not found")}
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            {t("detail.videoNotFoundDesc", "This video may have been deleted or the link is invalid.")}
+          </p>
           <Button onClick={() => navigate("/videos")} variant="outline">
+            <ArrowLeft className="h-4 w-4 mr-2" />
             {t("detail.backToVideos", "Back to Videos")}
           </Button>
         </div>
@@ -168,12 +149,17 @@ export default function VideoDetail() {
     );
   }
 
+  const title = translatedTitle || video.title;
+  const description = translatedDescription || video.description;
+  const content = translatedContent || video.content;
+  const catName = translatedCategoryName || category?.name;
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <PageMeta 
-        title={video.title}
-        description={video.description || `Watch ${video.title} - Video tutorial and guide`}
-        keywords={`video, tutorial, ${video.title}, ${category?.name || 'guide'}`}
+    <div className="min-h-screen bg-background">
+      <PageMeta
+        title={title}
+        description={description || `Watch ${title} - Video Tutorial`}
+        keywords={`video, tutorial, ${title}, ${catName || "guide"}`}
         image={video.cover_image || undefined}
         type="article"
       />
@@ -182,166 +168,193 @@ export default function VideoDetail() {
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
-            "itemListElement": [
-              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
-              { "@type": "ListItem", "position": 2, "name": "Videos", "item": `${window.location.origin}/videos` },
-              ...(category ? [{ "@type": "ListItem", "position": 3, "name": category.name, "item": `${window.location.origin}/videos/category/${category.id}` }] : []),
-              { "@type": "ListItem", "position": category ? 4 : 3, "name": video.title, "item": window.location.href }
-            ]
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "Home", item: window.location.origin },
+              { "@type": "ListItem", position: 2, name: "Videos", item: `${window.location.origin}/videos` },
+              ...(category ? [{ "@type": "ListItem", position: 3, name: category.name, item: `${window.location.origin}/videos/category/${category.id}` }] : []),
+              { "@type": "ListItem", position: category ? 4 : 3, name: video.title, item: window.location.href },
+            ],
           })}
         </script>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "VideoObject",
-            "name": video.title,
-            "description": video.description || `Watch ${video.title}`,
-            "thumbnailUrl": video.cover_image,
-            "uploadDate": video.created_at,
-            "url": window.location.href
+            name: video.title,
+            description: video.description || `Watch ${video.title}`,
+            thumbnailUrl: video.cover_image,
+            uploadDate: video.created_at,
+            url: window.location.href,
           })}
         </script>
       </Helmet>
-      
-      <div className="max-w-5xl mx-auto">
-        <Card>
-          <CardContent className="p-0">
-            {/* Video Player */}
-            <div className="aspect-video bg-black relative">
-              {canWatch ? (
-                <>
-                  {!videoError && video.video_url ? (
-                    useCustomPlayer ? (
-                      <div className="w-full h-full">
-                        <VideoPlayer
-                          src={video.video_url}
-                          poster={video.cover_image || undefined}
-                          controls={true}
-                          className="w-full h-full"
-                        />
-                      </div>
-                    ) : (
-                      <video
-                        controls
-                        className="w-full h-full"
-                        poster={video.cover_image || undefined}
-                        src={video.video_url}
-                        onError={handleVideoError}
-                        preload="metadata"
-                      >
-                        <source src={video.video_url} type="video/mp4" />
-                        <source src={video.video_url} type="video/webm" />
-                        <source src={video.video_url} type="video/ogg" />
-                        Your browser does not support video playback. Please try a different browser.
-                      </video>
-                    )
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-muted">
-                      <div className="text-center space-y-4 p-6">
-                        <AlertCircle className="h-12 w-12 text-destructive mx-auto" />
-                        <div className="space-y-2">
-                          <p className="text-lg font-semibold">Video Playback Error</p>
-                          <p className="text-sm text-muted-foreground">
-                            Unable to load the video. This may be due to:
-                          </p>
-                          <ul className="text-sm text-muted-foreground text-left max-w-md mx-auto space-y-1">
-                            <li>• Network connection issues</li>
-                            <li>• Video file format not supported</li>
-                            <li>• Video file has been moved or deleted</li>
-                          </ul>
-                        </div>
-                        <div className="flex gap-2 justify-center">
-                          <Button onClick={handleRetry} variant="outline" size="sm">
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Try Alternative Player
-                          </Button>
-                          <Button onClick={() => window.location.reload()} variant="default" size="sm">
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Reload Page
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-muted">
-                  <Alert className="max-w-md mx-4">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription className="ml-2">
-                      <div className="space-y-3">
-                        <p className="font-semibold">{t("detail.loginToWatchTitle", "Login Required")}</p>
-                        <p className="text-sm">{t("detail.loginToWatchDesc", "You need to log in to watch this video.")}</p>
-                        <Button
-                          onClick={() => navigate("/login")}
-                          className="w-full"
-                          size="sm"
-                        >
-                          <Play className="h-4 w-4 mr-2" />
-                          {t("detail.loginToWatch", "Login to Watch")}
-                        </Button>
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                </div>
-              )}
-            </div>
-          </CardContent>
 
-          <CardHeader>
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <CardTitle className="text-2xl md:text-3xl mb-4">{translatedTitle || video.title}</CardTitle>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {category && (
-                    <Badge variant="secondary" className="text-sm">
-                      {translatedCategoryName || category.name}
-                    </Badge>
-                  )}
+      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link to="/videos" className="hover:text-foreground flex items-center gap-1 transition-colors">
+            <ArrowLeft className="h-4 w-4" />
+            {t("detail.backToVideos", "Videos")}
+          </Link>
+          {category && (
+            <>
+              <span>/</span>
+              <Link to={`/videos/category/${category.id}`} className="hover:text-foreground transition-colors">
+                {catName}
+              </Link>
+            </>
+          )}
+        </nav>
+
+        {/* Player area */}
+        <div className="w-full rounded-2xl overflow-hidden bg-black shadow-2xl">
+          {canWatch ? (
+            videoError ? (
+              /* Playback error notice */
+              <div className="aspect-video flex flex-col items-center justify-center bg-neutral-900 gap-4 p-6 text-center">
+                <AlertCircle className="h-12 w-12 text-red-400" />
+                <div className="space-y-1">
+                  <p className="text-white font-semibold text-lg">{t("detail.videoPlayError", "Playback failed")}</p>
+                  <p className="text-white/60 text-sm">Network issue, unsupported format, or file no longer available</p>
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-white/30 text-white hover:bg-white/10"
+                    onClick={() => { setVideoError(false); }}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    {t("detail.retry", "Retry")}
+                  </Button>
+                  <Button size="sm" onClick={() => window.location.reload()} className="bg-primary">
+                    {t("detail.reloadPage", "Reload page")}
+                  </Button>
                 </div>
               </div>
+            ) : video.video_url ? (
+              <VideoPlayer
+                src={video.video_url}
+                poster={video.cover_image || undefined}
+                controls={true}
+                aspectRatio="16:9"
+                className="w-full"
+                onError={() => setVideoError(true)}
+              />
+            ) : (
+              <div className="aspect-video flex items-center justify-center bg-neutral-900">
+                <p className="text-white/60">{t("detail.noVideo", "No video file available")}</p>
+              </div>
+            )
+          ) : (
+            /* Login required */
+            <div className="aspect-video flex items-center justify-center bg-neutral-900">
+              <div className="text-center space-y-4 p-6 max-w-sm">
+                <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
+                  <Play className="h-8 w-8 text-primary" />
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-lg mb-1">
+                    {t("detail.loginToWatchTitle", "Login to watch")}
+                  </p>
+                  <p className="text-white/60 text-sm">
+                    {t("detail.loginToWatchDesc", "This video requires login to watch")}
+                  </p>
+                </div>
+                <Button onClick={() => navigate("/login")} className="w-full">
+                  <LogIn className="h-4 w-4 mr-2" />
+                  {t("detail.loginToWatch", "Login now")}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Video info */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Primary info */}
+          <div className="lg:col-span-2 space-y-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold leading-tight mb-3">{title}</h1>
+              {catName && (
+                <Link to={`/videos/category/${category?.id}`}>
+                  <Badge variant="secondary" className="hover:bg-secondary/80 cursor-pointer">
+                    {catName}
+                  </Badge>
+                </Link>
+              )}
             </div>
 
-            {video.description && (
-              <p className="text-muted-foreground mb-4 leading-relaxed">{translatedDescription || video.description}</p>
+            {/* Metadata */}
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground py-3 border-y border-border">
+              {video.duration && (
+                <span className="flex items-center gap-1.5">
+                  <Clock className="h-4 w-4" />
+                  {formatDuration(video.duration)}
+                </span>
+              )}
+              <span className="flex items-center gap-1.5">
+                <Eye className="h-4 w-4" />
+                {video.view_count || 0} {t("detail.views", "views")}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                {formatDate(video.created_at)}
+              </span>
+            </div>
+
+            {/* Summary */}
+            {description && (
+              <p className="text-muted-foreground leading-relaxed">{description}</p>
             )}
 
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground border-t pt-4">
-              {video.duration && (
-                <div className="flex items-center gap-2">
-                  <Play className="h-4 w-4" />
-                  <span>{t("detail.duration", "Duration:")} {formatDuration(video.duration)}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                <span>{video.view_count || 0} {t("detail.views", "views")}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>{t("detail.published", "Published:")} {formatDate(video.created_at)}</span>
-              </div>
-            </div>
-          </CardHeader>
-
-          {video.content && (
-            <CardContent>
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold mb-4">{t("detail.videoDescription", "Video Description")}</h3>
+            {/* Rich text content */}
+            {content && (
+              <div className="border-t pt-4">
+                <h3 className="font-semibold mb-3">{t("detail.videoDescription", "Video Details")}</h3>
                 <div
                   className="prose prose-sm max-w-none dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: translatedContent || video.content }}
+                  dangerouslySetInnerHTML={{ __html: content }}
                 />
               </div>
-            </CardContent>
-          )}
-        </Card>
+            )}
+          </div>
 
-        {/* Back Button */}
-        <div className="mt-6">
-          <Button onClick={() => navigate("/videos")} variant="outline">
-            ← {t("detail.backToVideos", "Back to Videos")}
-          </Button>
+          {/* Side info card */}
+          <aside className="space-y-4">
+            {video.cover_image && (
+              <div className="rounded-xl overflow-hidden border border-border">
+                <img
+                  src={video.cover_image}
+                  alt={title}
+                  className="w-full aspect-video object-cover"
+                />
+              </div>
+            )}
+            <div className="rounded-xl border border-border p-4 space-y-3 text-sm">
+              <h4 className="font-semibold">{t("detail.videoInfo", "Video Info")}</h4>
+              {catName && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("detail.category", "Category")}</span>
+                  <span>{catName}</span>
+                </div>
+              )}
+              {video.duration && (
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">{t("detail.duration", "Duration")}</span>
+                  <span>{formatDuration(video.duration)}</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{t("detail.views", "Views")}</span>
+                <span>{video.view_count || 0}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">{t("detail.published", "Published")}</span>
+                <span>{formatDate(video.created_at)}</span>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

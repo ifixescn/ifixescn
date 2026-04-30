@@ -183,15 +183,19 @@ export default function Home() {
             <div className="space-y-6">
               <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-primary/20">
                 <Award className="h-3 w-3 mr-1" />
-                {t("home.heroBadge", "Professional Repair Resources")}
+                <TranslatedText text="Professional Repair Resources" />
               </Badge>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                {t("home.heroTitle1", "Repair Anything.")}
-                <span className="block text-primary mt-2">{t("home.heroTitle2", "Professional Tools.")}</span>
+                <TranslatedText text="Repair Anything." />
+                <span className="block text-primary mt-2">
+                  <TranslatedText text="Professional Tools." />
+                </span>
               </h1>
               
-              <p className="text-lg text-muted-foreground max-w-xl">{t("home.heroDesc", "With the update of digital products, iFixes continuously develops more simple and easy-to-use tools. Join our community of repair enthusiasts and professionals.")}</p>
+              <p className="text-lg text-muted-foreground max-w-xl">
+                <TranslatedText text="With the update of digital products, iFixes continuously develops more simple and easy-to-use tools. Join our community of repair enthusiasts and professionals." />
+              </p>
 
               {/* Search Bar */}
               <form onSubmit={handleSearch} className="flex gap-2 max-w-xl">
@@ -207,14 +211,14 @@ export default function Home() {
                   />
                 </div>
                 <Button type="submit" size="lg" className="px-6">
-                  {t("home.heroSearchBtn", "Search")}
+                  <TranslatedText text="Search" />
                 </Button>
               </form>
 
               {/* Featured Products */}
               <div className="pt-6">
                 <h3 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wide">
-                  {t("home.featuredProducts", "Featured Products")}
+                  <TranslatedText text="Featured Products" />
                 </h3>
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   {loading ? (
@@ -291,14 +295,16 @@ export default function Home() {
           <ScrollAnimationWrapper animation="fade-in">
             <div className="flex items-end justify-between mb-8">
               <div>
-                <h2 className="text-3xl font-bold mb-2">{t("home.qaSection", "Community Q&A")}</h2>
+                <h2 className="text-3xl font-bold mb-2">
+                  <TranslatedText text="Community Q&A" />
+                </h2>
                 <p className="text-muted-foreground">
-                  {t("home.qaDesc", "Get answers from repair experts")}
+                  <TranslatedText text="Get answers from repair experts" />
                 </p>
               </div>
               <Link to="/questions">
                  <Button variant="outline">
-                  {t("home.viewAll", "View All")}
+                  <TranslatedText text="View All" />
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </Link>
@@ -336,7 +342,7 @@ export default function Home() {
                           )}
                           <div className="flex items-center text-xs text-muted-foreground">
                             <MessageCircle className="h-3 w-3 mr-1" />
-                            {question.answer_count || 0} {t("home.answersCount", "answers")}
+                            {question.answer_count || 0} <TranslatedText text="answers" className="ml-1" />
                           </div>
                         </div>
                         <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
@@ -350,7 +356,7 @@ export default function Home() {
                             {question.author?.username || t("home.anonymous", "Anonymous")}
                           </span>
                           <span className="text-sm text-primary group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
-                            {t("home.view", "View")}
+                            <TranslatedText text="View" />
                             <ArrowRight className="h-4 w-4" />
                           </span>
                         </div>
@@ -371,22 +377,22 @@ export default function Home() {
               <CardContent className="py-16 px-8 text-center">
                 <div className="max-w-2xl mx-auto space-y-6">
                   <h2 className="text-3xl md:text-4xl font-bold">
-                    {t("home.ctaTitle", "Join the Repair Revolution")}
+                    <TranslatedText text="Join the Repair Revolution" />
                   </h2>
                   <p className="text-lg text-muted-foreground">
-                    {t("home.ctaDesc", "Start fixing your devices today with our expert community support and quality parts")}
+                    <TranslatedText text="Start fixing your devices today with our expert community support and quality parts" />
                   </p>
                   <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
                     <Button size="lg" asChild>
                       <Link to="/questions">
                         <MessageCircle className="mr-2 h-5 w-5" />
-                        {t("home.ctaAsk", "Ask a Question")}
+                        <TranslatedText text="Ask a Question" />
                       </Link>
                     </Button>
                     <Button size="lg" variant="outline" asChild>
                       <Link to="/products">
                         <Wrench className="mr-2 h-5 w-5" />
-                        {t("home.ctaShop", "Shop Parts & Tools")}
+                        <TranslatedText text="Shop Parts & Tools" />
                       </Link>
                     </Button>
                   </div>

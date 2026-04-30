@@ -4,9 +4,10 @@ import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getProductBySlug, incrementProductViews } from "@/db/api";
 import type { ProductWithImages } from "@/types";
-import { Eye, Home, ChevronRight, ZoomIn } from "lucide-react";
+import { Eye, Home, ChevronRight, ZoomIn, Tag, Package, ArrowLeft } from "lucide-react";
 import { useRecordBrowsing } from "@/hooks/useRecordBrowsing";
 import PageMeta from "@/components/common/PageMeta";
 import ImageViewer from "@/components/common/ImageViewer";
@@ -20,32 +21,27 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [currentImage, setCurrentImage] = useState(0);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
-
-  // 翻译后的 HTML 内容（description / content 可能含 HTML 标签）
   const [translatedDescription, setTranslatedDescription] = useState<string>("");
   const [translatedContent, setTranslatedContent] = useState<string>("");
 
-  // 记录浏览历史
   useRecordBrowsing("product", product?.id, product?.name);
 
   useEffect(() => {
-    if (slug) {
-      getProductBySlug(slug).then(data => {
-        setProduct(data);
-        if (data) {
-          setTranslatedDescription(data.description || "");
-          setTranslatedContent(data.content || "");
-          incrementProductViews(data.id);
-        }
-        setLoading(false);
-      }).catch(error => {
-        console.error("Failed to load products:", error);
-        setLoading(false);
-      });
-    }
+    if (!slug) return;
+    getProductBySlug(slug).then((data) => {
+      setProduct(data);
+      if (data) {
+        setTranslatedDescription(data.description || "");
+        setTranslatedContent(data.content || "");
+        incrementProductViews(data.id);
+      }
+      setLoading(false);
+    }).catch((err) => {
+      console.error("Failed to load product:", err);
+      setLoading(false);
+    });
   }, [slug]);
 
-  // 当语言或产品切换时重新翻译 HTML 内容
   useEffect(() => {
     if (!product) return;
     if (isDefaultLang) {
@@ -54,142 +50,143 @@ export default function ProductDetail() {
       return;
     }
     let cancelled = false;
-    if (product.description) {
-      translateText(product.description).then((r) => {
-        if (!cancelled) setTranslatedDescription(r);
-      });
-    }
-    if (product.content) {
-      translateText(product.content).then((r) => {
-        if (!cancelled) setTranslatedContent(r);
-      });
-    }
+    if (product.description) translateText(product.description).then((r) => { if (!cancelled) setTranslatedDescription(r); });
+    if (product.content) translateText(product.content).then((r) => { if (!cancelled) setTranslatedContent(r); });
     return () => { cancelled = true; };
   }, [currentLang, product, isDefaultLang, translateText]);
 
+  /* ── Loading ─────────────────────────────────────────────── */
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-background">
+        <div className="border-b bg-gradient-to-br from-primary/8 via-primary/3 to-background py-10">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <Skeleton className="bg-muted h-4 w-56 mb-6" />
+            <Skeleton className="bg-muted h-9 w-72 mb-3" />
+          </div>
+        </div>
+        <div className="container mx-auto px-4 max-w-6xl py-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <Skeleton className="bg-muted aspect-square w-full rounded-xl" />
+            <div className="space-y-4">
+              <Skeleton className="bg-muted h-8 w-3/4" />
+              <Skeleton className="bg-muted h-4 w-full" />
+              <Skeleton className="bg-muted h-4 w-5/6" />
+              <Skeleton className="bg-muted h-4 w-4/6" />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
+  /* ── Not found ───────────────────────────────────────────── */
   if (!product) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-5 px-4">
+        <div className="inline-flex p-5 bg-muted rounded-2xl">
+          <Package className="h-12 w-12 text-muted-foreground" />
+        </div>
         <h1 className="text-2xl font-bold">{t("detail.productNotFound", "Product not found")}</h1>
         <Button asChild>
-          <Link to="/products">{t("detail.backToProducts", "Back to Product List")}</Link>
+          <Link to="/products">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {t("detail.backToProducts", "Back to Product List")}
+          </Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-8 xl:py-12 px-3 xl:px-4">
-      <PageMeta 
+    <div className="min-h-screen bg-background">
+      <PageMeta
         title={product.name}
         type="product"
         autoGenerateDescription={true}
         contentForDescription={product.description || product.name}
         image={product.images && product.images.length > 0 ? product.images[0].image_url : undefined}
       />
-      
-      {/* 结构化数据 - 面包屑导航 */}
+
       <Helmet>
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "BreadcrumbList",
             "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Home",
-                "item": window.location.origin
-              },
-              {
-                "@type": "ListItem",
-                "position": 2,
-                "name": "Products",
-                "item": `${window.location.origin}/products`
-              },
-              ...(product.category ? [{
-                "@type": "ListItem",
-                "position": 3,
-                "name": product.category.name,
-                "item": `${window.location.origin}/products/category/${product.category.id}`
-              }] : []),
-              {
-                "@type": "ListItem",
-                "position": product.category ? 4 : 3,
-                "name": product.name,
-                "item": window.location.href
-              }
-            ]
+              { "@type": "ListItem", "position": 1, "name": "Home", "item": window.location.origin },
+              { "@type": "ListItem", "position": 2, "name": "Products", "item": `${window.location.origin}/products` },
+              ...(product.category ? [{ "@type": "ListItem", "position": 3, "name": product.category.name, "item": `${window.location.origin}/products/category/${product.category.id}` }] : []),
+              { "@type": "ListItem", "position": product.category ? 4 : 3, "name": product.name, "item": window.location.href },
+            ],
           })}
         </script>
-        {/* 增强的Product结构化数据 */}
         <script type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Product",
             "name": product.name,
             "description": product.description,
-            "image": product.images?.map(img => img.image_url) || [],
-            "brand": {
-              "@type": "Brand",
-              "name": "iFixes"
-            },
+            "image": product.images?.map((img) => img.image_url) || [],
+            "brand": { "@type": "Brand", "name": "iFixes" },
             ...(product.price && {
-              "offers": {
-                "@type": "Offer",
-                "price": product.price,
-                "priceCurrency": "USD",
-                "availability": "https://schema.org/InStock"
-              }
-            })
+              "offers": { "@type": "Offer", "price": product.price, "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+            }),
           })}
         </script>
       </Helmet>
-      
-      <div className="container mx-auto max-w-6xl">
-        {/* 面包屑导航 */}
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6" aria-label="Breadcrumb">
-          <Link to="/" className="hover:text-foreground transition-colors flex items-center gap-1">
-            <Home className="h-4 w-4" />
-            Home
-          </Link>
-          <ChevronRight className="h-4 w-4" />
-          <Link to="/products" className="hover:text-foreground transition-colors">
-            Products
-          </Link>
-          {product.category && (
-            <>
-              <ChevronRight className="h-4 w-4" />
-              <Link 
-                to={`/products/category/${product.category.id}`}
-                className="hover:text-foreground transition-colors"
-              >
-                <TranslatedText text={product.category.name} />
-              </Link>
-            </>
-          )}
-          <ChevronRight className="h-4 w-4" />
-          <span className="text-foreground font-medium line-clamp-1">
-            <TranslatedText text={product.name} />
-          </span>
-        </nav>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      {/* ── Hero ─────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden border-b bg-gradient-to-br from-primary/8 via-primary/3 to-background">
+        <div
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: "radial-gradient(circle, hsl(var(--primary)/0.18) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div className="container mx-auto px-4 max-w-6xl py-10 md:py-12 relative">
+          {/* breadcrumb */}
+          <nav className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap" aria-label="Breadcrumb">
+            <Link to="/" className="hover:text-primary transition-colors flex items-center gap-1">
+              <Home className="h-3.5 w-3.5" /> Home
+            </Link>
+            <ChevronRight className="h-3 w-3 shrink-0" />
+            <Link to="/products" className="hover:text-primary transition-colors">Products</Link>
+            {product.category && (
+              <>
+                <ChevronRight className="h-3 w-3 shrink-0" />
+                <Link to={`/products/category/${product.category.id}`} className="hover:text-primary transition-colors">
+                  <TranslatedText text={product.category.name} />
+                </Link>
+              </>
+            )}
+            <ChevronRight className="h-3 w-3 shrink-0" />
+            <span className="text-foreground font-medium truncate max-w-xs">
+              <TranslatedText text={product.name} />
+            </span>
+          </nav>
+        </div>
+      </div>
+
+      {/* ── Body ─────────────────────────────────────────────── */}
+      <div className="container mx-auto px-4 max-w-6xl py-8 md:py-10">
+        <Link to="/products"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors mb-8">
+          <ArrowLeft className="h-3.5 w-3.5" />
+          {t("detail.backToProducts", "Back to Product List")}
+        </Link>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:gap-10">
+
+          {/* ── Image Gallery ── */}
           <div>
-            {product.images && product.images.length > 0 && (
-              <div className="space-y-4">
-                {/* Main Image with Premium Border */}
+            {product.images && product.images.length > 0 ? (
+              <div className="space-y-3">
+                {/* Main image */}
                 <div className="relative group">
-                  <div 
-                    className="aspect-square w-full overflow-hidden rounded-xl bg-gradient-to-br from-muted to-background border-2 border-border shadow-card hover:shadow-hover transition-all duration-300 cursor-zoom-in"
+                  <div
+                    className="aspect-square w-full overflow-hidden rounded-2xl bg-gradient-to-br from-muted to-background border shadow-sm hover:shadow-xl transition-all duration-300 cursor-zoom-in"
                     onClick={() => setIsViewerOpen(true)}
                   >
                     <img
@@ -199,97 +196,107 @@ export default function ProductDetail() {
                       loading="lazy"
                       itemProp="image"
                     />
+                    {/* overlay on hover */}
+                    <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-200 rounded-2xl" />
                   </div>
-                  
-                  {/* Zoom Icon Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                    <div className="bg-background/90 backdrop-blur-sm rounded-full p-4 shadow-lg">
-                      <ZoomIn className="h-8 w-8 text-primary" />
+                  {/* zoom hint */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                    <div className="bg-background/90 backdrop-blur-sm rounded-full p-3.5 shadow-lg border">
+                      <ZoomIn className="h-6 w-6 text-primary" />
                     </div>
                   </div>
-                  
-                  {/* Click to Zoom Hint */}
-                  <div className="absolute bottom-4 right-4 bg-background/90 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center gap-1.5">
-                    <ZoomIn className="h-3 w-3" />
-                    Click to zoom
+                  <div className="absolute bottom-3 right-3 bg-background/90 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 border">
+                    <ZoomIn className="h-3 w-3" /> Click to zoom
                   </div>
                 </div>
-                
-                {/* Thumbnail Grid */}
+
+                {/* Thumbnails */}
                 {product.images.length > 1 && (
                   <div className="grid grid-cols-5 gap-2">
                     {product.images.map((img, idx) => (
                       <button
                         key={img.id}
                         onClick={() => setCurrentImage(idx)}
-                        className={`relative rounded-lg overflow-hidden aspect-square transition-all duration-300 ${
-                          currentImage === idx 
-                            ? "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg scale-105" 
-                            : "ring-1 ring-border hover:ring-primary/50 hover:scale-105 shadow-sm hover:shadow-md"
+                        className={`relative rounded-lg overflow-hidden aspect-square transition-all duration-200 ${
+                          currentImage === idx
+                            ? "ring-2 ring-primary ring-offset-2 shadow-md scale-105"
+                            : "ring-1 ring-border hover:ring-primary/50 hover:scale-105 hover:shadow-sm"
                         }`}
                         aria-label={`View image ${idx + 1}`}
                       >
-                        <img
-                          src={img.image_url}
-                          alt={`${product.name} ${idx + 1}`}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                        <img src={img.image_url} alt={`${product.name} ${idx + 1}`}
+                          className="w-full h-full object-cover" loading="lazy" />
                       </button>
                     ))}
                   </div>
                 )}
               </div>
+            ) : (
+              <div className="aspect-square w-full rounded-2xl bg-muted/50 border flex items-center justify-center">
+                <Tag className="h-16 w-16 text-muted-foreground/30" />
+              </div>
             )}
           </div>
 
-          <Card itemScope itemType="https://schema.org/Product">
-            <CardHeader>
-              <div className="flex items-center gap-2 mb-2">
-                {product.category && (
-                  <Link to={`/products/category/${product.category.id}`}>
-                    <Badge variant="secondary" className="hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer">
-                      <TranslatedText text={product.category.name} />
-                    </Badge>
-                  </Link>
+          {/* ── Product Info ── */}
+          <div itemScope itemType="https://schema.org/Product">
+            <Card className="shadow-sm border-l-4 border-l-primary h-full">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-4">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
+                  {product.category && (
+                    <Link to={`/products/category/${product.category.id}`}>
+                      <Badge variant="secondary" className="rounded-full hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer text-xs">
+                        <TranslatedText text={product.category.name} />
+                      </Badge>
+                    </Link>
+                  )}
+                  <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Eye className="h-3.5 w-3.5 text-primary/60" />
+                    {product.view_count} {t("detail.views", "views")}
+                  </span>
+                </div>
+                <CardTitle className="text-2xl md:text-3xl font-bold leading-tight" itemProp="name">
+                  <h1><TranslatedText text={product.name} /></h1>
+                </CardTitle>
+                {product.price && (
+                  <div className="mt-4 flex items-baseline gap-2" itemProp="offers" itemScope itemType="https://schema.org/Offer">
+                    <meta itemProp="priceCurrency" content="USD" />
+                    <span className="text-3xl font-bold text-primary" itemProp="price">${product.price}</span>
+                    <span className="text-sm text-muted-foreground">USD</span>
+                  </div>
                 )}
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Eye className="h-4 w-4" />
-                  {product.view_count} {t("detail.views", "views")}
-                </div>
-              </div>
-              <CardTitle className="text-3xl" itemProp="name">
-                <h1><TranslatedText text={product.name} /></h1>
-              </CardTitle>
-              {product.price && (
-                <div className="text-3xl font-bold text-primary mt-4" itemProp="offers" itemScope itemType="https://schema.org/Offer">
-                  <meta itemProp="priceCurrency" content="USD" />
-                  <span itemProp="price">${product.price}</span>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {product.description && (
-                <div>
-                  <h3 className="font-semibold text-lg mb-3">{t("detail.productDescription", "Product Description")}</h3>
-                  <div 
-                    className="rich-content text-muted-foreground"
-                    itemProp="description"
-                    dangerouslySetInnerHTML={{ __html: translatedDescription || product.description }}
-                  />
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                {product.description && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                      {t("detail.productDescription", "Description")}
+                    </h3>
+                    <div
+                      className="rich-content text-foreground/80 text-sm leading-relaxed"
+                      itemProp="description"
+                      dangerouslySetInnerHTML={{ __html: translatedDescription || product.description }}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
+        {/* ── Detailed content ── */}
         {product.content && (
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>{t("detail.productDetails", "Product Details")}</CardTitle>
+          <Card className="mt-8 shadow-sm">
+            <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent pb-3">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg">
+                  <Package className="h-4 w-4 text-primary" />
+                </div>
+                {t("detail.productDetails", "Product Details")}
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div 
+              <div
                 className="rich-content"
                 dangerouslySetInnerHTML={{ __html: translatedContent || product.content }}
               />
@@ -297,7 +304,7 @@ export default function ProductDetail() {
           </Card>
         )}
       </div>
-      
+
       {/* Image Viewer Modal */}
       {isViewerOpen && product.images && product.images.length > 0 && (
         <ImageViewer

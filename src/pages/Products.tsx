@@ -1,21 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination, PaginationContent, PaginationEllipsis,
+  PaginationItem, PaginationLink, PaginationNext, PaginationPrevious,
 } from "@/components/ui/pagination";
 import { getProducts, getCategories } from "@/db/api";
 import type { ProductWithImages, Category } from "@/types";
 import TranslatedText from "@/components/common/TranslatedText";
 import { useTranslation } from "@/contexts/TranslationContext";
-import { Package, FolderOpen, Sparkles } from "lucide-react";
+import { Package, FolderOpen, Sparkles, ChevronRight, Tag } from "lucide-react";
 import PageMeta from "@/components/common/PageMeta";
 
 export default function Products() {
@@ -35,214 +31,252 @@ export default function Products() {
         const [productsData, categoriesData, allProductsData] = await Promise.all([
           getProducts(currentPage, productsPerPage, "published"),
           getCategories("product"),
-          getProducts(1, 100, "published") // 获取更多产品用于随机推荐
+          getProducts(1, 100, "published"),
         ]);
-        
         setProducts(productsData.products);
         setTotalProducts(productsData.total);
         setCategories(categoriesData);
-        
-        // 随机推荐5个产品
         const shuffled = [...allProductsData.products].sort(() => 0.5 - Math.random());
         setRecommendedProducts(shuffled.slice(0, 5));
-        
-        setLoading(false);
       } catch (error) {
         console.error("Failed to load data:", error);
+      } finally {
         setLoading(false);
       }
     };
-
     loadData();
   }, [currentPage]);
 
-  // 计算总页数
   const totalPages = Math.ceil(totalProducts / productsPerPage);
 
-  // 生成页码数组
   const generatePageNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisiblePages = 5;
-
-    if (totalPages <= maxVisiblePages) {
-      // 如果总页数小于等于最大可见页数，显示所有页码
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
+    if (totalPages <= 5) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      // 总是显示第一页
       pages.push(1);
-
-      if (currentPage > 3) {
-        pages.push('ellipsis-start');
-      }
-
-      // 显示当前页附近的页码
+      if (currentPage > 3) pages.push("ellipsis-start");
       const start = Math.max(2, currentPage - 1);
       const end = Math.min(totalPages - 1, currentPage + 1);
-
-      for (let i = start; i <= end; i++) {
-        pages.push(i);
-      }
-
-      if (currentPage < totalPages - 2) {
-        pages.push('ellipsis-end');
-      }
-
-      // 总是显示最后一页
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (currentPage < totalPages - 2) pages.push("ellipsis-end");
       pages.push(totalPages);
     }
-
     return pages;
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // 滚动到顶部
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen py-12 px-4">
-      <PageMeta 
+    <div className="min-h-screen bg-background">
+      <PageMeta
         title="Products"
         description="Browse our comprehensive collection of mobile phone repair parts, tools, and accessories. Find quality replacement parts for all major smartphone brands."
         keywords="repair parts, phone parts, replacement parts, repair tools, smartphone accessories, screen replacement, battery replacement"
       />
-      <div className="container mx-auto max-w-7xl">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-3">
-            <Package className="h-10 w-10 text-primary" />
-            {t("products.title", "Product Showcase")}
-          </h1>
-          <p className="text-muted-foreground text-lg">{t("products.browseAll", "Discover quality products to meet your needs")}</p>
-        </div>
 
-        <div className="flex flex-col xl:flex-row gap-6">
-          {/* Left Sidebar - Hidden on mobile, visible on desktop */}
-          <aside className="hidden xl:block xl:w-64 space-y-6 flex-shrink-0">
-            {/* Product Categories */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <FolderOpen className="h-5 w-5" />
-                  {t("products.categories", "Product Categories")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
+      {/* ── Hero ──────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden border-b bg-gradient-to-br from-primary/8 via-primary/3 to-background">
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: "radial-gradient(circle, hsl(var(--primary)/0.15) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div className="container mx-auto px-4 max-w-7xl py-12 md:py-16 relative">
+          {/* breadcrumb */}
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-5">
+            <Link to="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-foreground font-medium">{t("products.title", "Product Showcase")}</span>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+            <div className="max-w-xl">
+              <div className="inline-flex items-center gap-2 bg-primary/10 text-primary text-xs font-semibold px-3 py-1 rounded-full mb-4 border border-primary/20">
+                <Package className="h-3.5 w-3.5" />
+                {t("products.title", "Product Showcase")}
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-3 break-keep text-balance">
+                {t("products.browseAll", "Discover Quality Repair Tools")}
+              </h1>
+              <p className="text-muted-foreground text-sm md:text-base leading-relaxed">
+                {t("products.subtitle", "Professional-grade repair equipment trusted by technicians worldwide.")}
+              </p>
+            </div>
+            {/* stat chips */}
+            <div className="flex gap-4 shrink-0">
+              {[
+                { icon: <Package className="h-4 w-4" />, value: totalProducts, label: t("products.itemsCount", "Products") },
+                { icon: <FolderOpen className="h-4 w-4" />, value: categories.length, label: t("products.categoriesCount", "Categories") },
+              ].map((s) => (
+                <div key={s.label} className="flex flex-col items-center justify-center bg-card border rounded-xl px-5 py-3 shadow-sm min-w-[80px]">
+                  <div className="flex items-center gap-1 text-primary mb-0.5">
+                    {s.icon}
+                    <span className="text-2xl font-bold tabular-nums">{s.value}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Content ───────────────────────────────────────────────── */}
+      <div className="container mx-auto px-4 max-w-7xl py-8 md:py-10">
+        <div className="flex flex-col xl:flex-row gap-8">
+
+          {/* ── Sidebar ── */}
+          <aside className="hidden xl:flex xl:flex-col xl:w-60 gap-5 flex-shrink-0">
+            {/* Categories */}
+            <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
+              <div className="px-4 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
+                <div className="p-1.5 bg-primary/10 rounded-lg">
+                  <FolderOpen className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-sm font-semibold">{t("products.categories", "Product Categories")}</span>
+              </div>
+              <div className="p-2 space-y-0.5">
                 <Link to="/products">
-                  <Button variant="ghost" className="w-full justify-start text-sm">
+                  <Button variant="ghost" className="w-full justify-start text-sm h-9 rounded-lg hover:bg-primary/5 hover:text-primary">
                     {t("products.allProducts", "All Products")}
                   </Button>
                 </Link>
-                {categories.map(category => (
-                  <Link key={category.id} to={`/products/category/${category.id}`}>
-                    <Button variant="ghost" className="w-full justify-start text-sm">
-                      <TranslatedText text={category.name} />
+                {categories.map((cat) => (
+                  <Link key={cat.id} to={`/products/category/${cat.id}`}>
+                    <Button variant="ghost" className="w-full justify-between text-sm h-9 rounded-lg hover:bg-primary/5 hover:text-primary group">
+                      <TranslatedText text={cat.name} />
+                      <ChevronRight className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </Button>
                   </Link>
                 ))}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            {/* Recommended Products */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Sparkles className="h-5 w-5" />
-                  {t("products.relatedProducts", "Recommended")}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {recommendedProducts.map(product => (
-                  <Link 
-                    key={product.id} 
-                    to={`/products/${product.slug}`}
-                    className="block group"
-                  >
-                    <div className="space-y-2">
-                      {product.images && product.images.length > 0 && (
-                        <div className="aspect-square w-full overflow-hidden rounded bg-muted">
-                          <img
-                            src={product.images[0].image_url}
-                            alt={product.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                          />
-                        </div>
-                      )}
-                      <div>
-                        <p className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors text-center">
+            {/* Recommended */}
+            {recommendedProducts.length > 0 && (
+              <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
+                <div className="px-4 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b flex items-center gap-2">
+                  <div className="p-1.5 bg-primary/10 rounded-lg">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold">{t("products.relatedProducts", "Recommended")}</span>
+                </div>
+                <div className="p-3 space-y-3">
+                  {recommendedProducts.map((product) => (
+                    <Link key={product.id} to={`/products/${product.slug}`} className="flex items-center gap-3 group">
+                      <div className="w-14 h-14 rounded-lg overflow-hidden bg-muted border shrink-0">
+                        {product.images && product.images.length > 0 ? (
+                          <img src={product.images[0].image_url} alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-200" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Tag className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs font-medium line-clamp-2 group-hover:text-primary transition-colors leading-snug">
+                        <TranslatedText text={product.name} />
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </aside>
+
+          {/* ── Product Grid ── */}
+          <div className="flex-1 min-w-0">
+            {/* Loading skeleton */}
+            {loading && (
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="border rounded-xl overflow-hidden">
+                    <Skeleton className="bg-muted aspect-square w-full" />
+                    <div className="p-3">
+                      <Skeleton className="bg-muted h-4 w-4/5 mx-auto" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Empty */}
+            {!loading && products.length === 0 && (
+              <div className="text-center py-20 border rounded-xl bg-muted/20">
+                <div className="inline-flex p-4 bg-primary/10 rounded-2xl mb-4">
+                  <Package className="h-10 w-10 text-primary" />
+                </div>
+                <p className="text-muted-foreground text-sm">{t("products.noProducts", "No products yet")}</p>
+              </div>
+            )}
+
+            {/* Grid */}
+            {!loading && products.length > 0 && (
+              <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                {products.map((product) => (
+                  <Link key={product.id} to={`/products/${product.slug}`}>
+                    <div className="group relative bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-lg hover:border-primary/30 transition-all duration-200 h-full flex flex-col">
+                      {/* Image */}
+                      <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                        {product.images && product.images.length > 0 ? (
+                          <>
+                            <img
+                              src={product.images[0].image_url}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              loading="lazy"
+                            />
+                            {/* hover tint overlay */}
+                            <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/8 transition-colors duration-200" />
+                          </>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Tag className="h-12 w-12 text-muted-foreground/30" />
+                          </div>
+                        )}
+                        {/* top-right image count badge */}
+                        {product.images && product.images.length > 1 && (
+                          <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm text-xs font-medium px-2 py-0.5 rounded-full border opacity-0 group-hover:opacity-100 transition-opacity">
+                            +{product.images.length - 1}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Name */}
+                      <div className="p-3 flex-1 flex items-center justify-center">
+                        <p className="text-xs xl:text-sm font-medium text-center text-foreground group-hover:text-primary transition-colors line-clamp-2 leading-snug">
                           <TranslatedText text={product.name} />
                         </p>
                       </div>
+
+                      {/* bottom accent line */}
+                      <div className="h-0.5 bg-gradient-to-r from-primary/0 via-primary/60 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                     </div>
                   </Link>
                 ))}
-                {recommendedProducts.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    {t("products.noProducts", "No products yet")}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </aside>
-
-          {/* Product List */}
-          <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 xl:gap-6">
-              {products.map(product => (
-                <Link key={product.id} to={`/products/${product.slug}`}>
-                  <Card className="group hover:shadow-lg transition-shadow h-full">
-                    {product.images && product.images.length > 0 && (
-                      <div className="aspect-square w-full overflow-hidden rounded-t-lg bg-muted">
-                        <img
-                          src={product.images[0].image_url}
-                          alt={product.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    )}
-                    <CardHeader className="p-2 xl:p-4">
-                      <CardTitle className="line-clamp-2 group-hover:text-primary transition-colors text-xs xl:text-base text-center">
-                        <TranslatedText text={product.name} />
-                      </CardTitle>
-                    </CardHeader>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-            
-            {products.length === 0 && !loading && (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">{t("products.noProducts", "No products yet")}</p>
-                </CardContent>
-              </Card>
+              </div>
             )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
+            {!loading && totalPages > 1 && (
+              <div className="mt-10 flex justify-center">
                 <Pagination>
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious 
+                      <PaginationPrevious
                         onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>
-                    
-                    {generatePageNumbers().map((page, index) => (
-                      <PaginationItem key={`page-${index}`}>
-                        {page === 'ellipsis-start' || page === 'ellipsis-end' ? (
+                    {generatePageNumbers().map((page, idx) => (
+                      <PaginationItem key={`page-${idx}`}>
+                        {page === "ellipsis-start" || page === "ellipsis-end" ? (
                           <PaginationEllipsis />
                         ) : (
                           <PaginationLink
@@ -255,11 +289,10 @@ export default function Products() {
                         )}
                       </PaginationItem>
                     ))}
-                    
                     <PaginationItem>
-                      <PaginationNext 
+                      <PaginationNext
                         onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                       />
                     </PaginationItem>
                   </PaginationContent>

@@ -36,9 +36,10 @@ import Settings from './pages/admin/Settings';
 import SystemSettings from './pages/admin/SystemSettings';
 import FooterSettings from './pages/admin/FooterSettings';
 import FontSettings from './pages/admin/FontSettings';
-import AITemplatesPage from './pages/admin/ai-templates/AITemplatesPage';
-import AIBatchGenerationPage from './pages/admin/ai-batch-generation/AIBatchGenerationPage';
-import AIBatchGenerationDetailPage from './pages/admin/ai-batch-generation/AIBatchGenerationDetailPage';
+import Articles from './pages/Articles';
+import ArticleDetail from './pages/ArticleDetail';
+import ArticlesByCategory from './pages/ArticlesByCategory';
+import ArticlesModule from './pages/admin/ArticlesModule';
 import UserProfilePage from './pages/profile/UserProfilePage';
 import MessagesPage from './pages/messages/MessagesPage';
 import ProfileSettingsPage from './pages/member-settings/ProfileSettingsPage';
@@ -68,6 +69,23 @@ const routes: RouteConfig[] = [
     name: 'Home',
     path: '/',
     element: <Home />
+  },
+  {
+    name: 'Articles',
+    path: '/articles',
+    element: <Articles />
+  },
+  {
+    name: 'Article Detail',
+    path: '/articles/:slug',
+    element: <ArticleDetail />,
+    visible: false
+  },
+  {
+    name: 'Article Category',
+    path: '/articles/category/:categoryId',
+    element: <ArticlesByCategory />,
+    visible: false
   },
   {
     name: 'Products',
@@ -259,6 +277,11 @@ const routes: RouteConfig[] = [
         name: 'Profile Management',
         path: 'profile-management',
         element: <ProfileManagementPage />
+      },
+      {
+        name: 'Article Management',
+        path: 'articles',
+        element: <ArticlesModule />
       },
       {
         name: 'Product Management',

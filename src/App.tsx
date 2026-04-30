@@ -4,6 +4,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SEOProvider } from '@/contexts/SEOContext';
 import { TranslationProvider } from '@/contexts/TranslationContext';
+import { ModuleSettingsProvider, useModuleSettings } from '@/contexts/ModuleSettingsContext';
 import { RequireAuth } from '@/components/auth/RequireAuth';
 import { Toaster } from '@/components/ui/toaster';
 import { supabase } from '@/db/supabase';
@@ -23,6 +24,17 @@ function ScrollToTop() {
   }, [pathname]);
 
   return null;
+}
+
+// 文章模块守卫：模块关闭时重定向到首页
+function ArticleModuleGuard({ children }: { children: React.ReactNode }) {
+  const { isModuleEnabled, moduleSettings } = useModuleSettings();
+  // 等待 moduleSettings 加载完成（非空对象）后再判断
+  const loaded = Object.keys(moduleSettings).length > 0;
+  if (loaded && !isModuleEnabled("articles")) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
 }
 
 function AppContent() {
@@ -63,7 +75,6 @@ function AppContent() {
     "/downloads/*",
     "/videos",
     "/videos/*",
-    "/yiyuan",
     "/yiyuan/*",
   ], []);
 
@@ -86,19 +97,27 @@ function AppContent() {
     console.log('[App] User Agent:', navigator.userAgent);
   }, []);
 
+  // 文章路由路径集合（用于守卫判断）
+  const articlePaths = new Set(['/articles', '/articles/:slug', '/articles/category/:categoryId']);
+
   // 渲染路由列表（复用逻辑）
   const renderRoutes = () =>
     routes.map((route, index) => {
+      // 文章路由套上模块守卫
+      const element = articlePaths.has(route.path)
+        ? <ArticleModuleGuard>{route.element}</ArticleModuleGuard>
+        : route.element;
+
       if (route.children) {
         return (
-          <Route key={index} path={route.path} element={route.element}>
+          <Route key={index} path={route.path} element={element}>
             {route.children.map((child, childIndex) => (
               <Route key={childIndex} path={child.path} element={child.element} />
             ))}
           </Route>
         );
       }
-      return <Route key={index} path={route.path} element={route.element} />;
+      return <Route key={index} path={route.path} element={element} />;
     });
 
   // yiyuan 为完全公开页面，直接绕过 RequireAuth，避免任何认证时序问题
@@ -146,7 +165,9 @@ function App() {
           <AuthProvider client={supabase}>
             <TranslationProvider>
               <Router>
-                <AppContent />
+                <ModuleSettingsProvider>
+                  <AppContent />
+                </ModuleSettingsProvider>
               </Router>
             </TranslationProvider>
           </AuthProvider>

@@ -34,7 +34,8 @@ import {
   Square,
   ArrowUpDown,
   Image as ImageIcon,
-  Loader2
+  Loader2,
+  Zap
 } from "lucide-react";
 import {
   getAllVideosForAdmin,
@@ -48,13 +49,16 @@ import {
   getCategories,
 } from "@/db/api";
 import type { Video, Category } from "@/types";
+import { compressVideo, formatFileSize } from "@/utils/videoCompressor";
 
-// 上传进度接口
+// Upload progress interface
 interface UploadProgress {
   fileName: string;
   progress: number;
-  status: 'uploading' | 'success' | 'error';
+  status: 'compressing' | 'uploading' | 'success' | 'error';
   error?: string;
+  originalSize?: number;
+  compressedSize?: number;
 }
 
 export default function VideosManage() {
@@ -99,11 +103,11 @@ export default function VideosManage() {
     loadData();
   }, []);
 
-  // 搜索和筛选效果
+  // Search and filter effect
   useEffect(() => {
     let result = [...videos];
 
-    // 搜索
+    // Search
     if (searchQuery) {
       result = result.filter(video =>
         video.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -111,19 +115,19 @@ export default function VideosManage() {
       );
     }
 
-    // 分类筛选
+    // Filter by category
     if (filterCategory && filterCategory !== "all") {
       result = result.filter(video => video.category_id === filterCategory);
     }
 
-    // 状态筛选
+    // Filter by status
     if (filterStatus !== "all") {
       result = result.filter(video => 
         filterStatus === "published" ? video.is_published : !video.is_published
       );
     }
 
-    // 排序
+    // Sort
     result.sort((a, b) => {
       let aValue: any = a[sortBy as keyof Video];
       let bValue: any = b[sortBy as keyof Video];
@@ -153,10 +157,10 @@ export default function VideosManage() {
       setVideos(videosData);
       setCategories(categoriesData);
     } catch (error) {
-      console.error("加载数据失败:", error);
+      console.error("Failed to load data:", error);
       toast({
-        title: "加载失败",
-        description: "无法加载视频列表",
+        title: "Load failed",
+        description: "Unable to load video list",
         variant: "destructive",
       });
     } finally {
@@ -164,7 +168,7 @@ export default function VideosManage() {
     }
   };
 
-  // 拖拽上传处理
+  // Drag-and-drop upload handler
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -186,7 +190,7 @@ export default function VideosManage() {
     }
   };
 
-  // 从视频提取时长
+  // Extract duration from video file
   const extractVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve) => {
       const video = document.createElement('video');
@@ -205,7 +209,7 @@ export default function VideosManage() {
     });
   };
 
-  // 从视频生成封面
+  // Generate cover image from video file
   const generateVideoCover = (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
       const video = document.createElement('video');
@@ -215,7 +219,7 @@ export default function VideosManage() {
       video.onloadeddata = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        video.currentTime = 1; // 获取第1秒的帧
+        video.currentTime = 1; // Capture frame at 1 second
       };
 
       video.onseeked = () => {
@@ -225,14 +229,14 @@ export default function VideosManage() {
             if (blob) {
               resolve(blob);
             } else {
-              reject(new Error('无法生成封面'));
+              reject(new Error('Failed to generate cover'));
             }
           }, 'image/jpeg', 0.8);
         }
       };
 
       video.onerror = () => {
-        reject(new Error('无法加载视频'));
+        reject(new Error('Unable to load video'));
       };
 
       video.src = URL.createObjectURL(file);
@@ -240,72 +244,130 @@ export default function VideosManage() {
     });
   };
 
-  // 处理视频文件
+  // Handle video file upload logic
   const handleVideoFile = async (file: File) => {
-    // 验证文件类型
+    // Validate file type
     if (!file.type.startsWith('video/')) {
       toast({
-        title: "文件类型错误",
-        description: "请上传视频文件",
+        title: "Invalid file type",
+        description: "Please upload a video file",
         variant: "destructive",
       });
       return;
     }
 
-    // 检查文件大小 (50GB - Supabase PRO 版限制)
-    // PRO 版支持最大 50GB 单文件上传
-    if (file.size > 50 * 1024 * 1024 * 1024) {
+    // Check file size — 5 GB limit (Supabase Pro plan)
+    const MAX_VIDEO_SIZE = 5 * 1024 * 1024 * 1024; // 5 GB
+    if (file.size > MAX_VIDEO_SIZE) {
       toast({
-        title: "文件过大",
-        description: "视频文件大小不能超过 50GB",
+        title: "File too large",
+        description: `Video file must not exceed 5 GB. Your file is ${(file.size / 1024 / 1024 / 1024).toFixed(2)} GB.`,
         variant: "destructive",
       });
       return;
+    }
+
+    // Soft warning for large files (> 500 MB) — upload will still proceed
+    if (file.size > 500 * 1024 * 1024) {
+      toast({
+        title: "Large file detected",
+        description: `Your file is ${(file.size / 1024 / 1024).toFixed(0)} MB. Upload may take several minutes depending on your connection speed.`,
+      });
     }
 
     try {
       setUploading(true);
-      setUploadProgress({
-        fileName: file.name,
-        progress: 0,
-        status: 'uploading'
-      });
 
-      // 提取视频时长
-      const duration = await extractVideoDuration(file);
-      
-      // 模拟上传进度
+      // ── Compression phase ────────────────────────────────────────────────
+      const TARGET_MB = 50;
+      const needsCompression = file.size > TARGET_MB * 1024 * 1024;
+      let fileToUpload = file;
+
+      if (needsCompression) {
+        toast({
+          title: "Compressing video…",
+          description: `File is ${formatFileSize(file.size)} — auto-compressing to ≤${TARGET_MB} MB`,
+        });
+
+        setUploadProgress({
+          fileName: file.name,
+          progress: 0,
+          status: 'compressing',
+        });
+
+        const result = await compressVideo(file, ({ phase, percent }) => {
+          setUploadProgress(prev => ({
+            ...(prev ?? { fileName: file.name }),
+            status: 'compressing',
+            progress: phase === 'loading' ? Math.round(percent * 0.3) : Math.round(30 + percent * 0.6),
+          }));
+        });
+
+        fileToUpload = result.file;
+
+        if (result.wasCompressed) {
+          toast({
+            title: "Compression complete",
+            description: `${formatFileSize(result.originalSize)} → ${formatFileSize(result.compressedSize)} (${Math.round((1 - result.compressedSize / result.originalSize) * 100)}% smaller)`,
+          });
+          setUploadProgress(prev => ({
+            ...(prev ?? { fileName: file.name }),
+            status: 'compressing',
+            progress: 90,
+            originalSize: result.originalSize,
+            compressedSize: result.compressedSize,
+          }));
+        }
+      } else {
+        setUploadProgress({
+          fileName: file.name,
+          progress: 0,
+          status: 'uploading',
+        });
+      }
+
+      // ── Upload phase ─────────────────────────────────────────────────────
+      setUploadProgress(prev => ({
+        ...(prev ?? { fileName: file.name }),
+        status: 'uploading',
+        progress: needsCompression ? 90 : 0,
+      }));
+
+      // Extract video duration
+      const duration = await extractVideoDuration(fileToUpload);
+
+      // Simulate upload progress (90→99)
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
-          if (!prev || prev.progress >= 90) {
+          if (!prev || prev.progress >= 99) {
             clearInterval(progressInterval);
             return prev;
           }
-          return { ...prev, progress: prev.progress + 10 };
+          const increment = needsCompression ? 2 : 10;
+          return { ...prev, progress: Math.min(prev.progress + increment, 99) };
         });
       }, 300);
 
-      // 上传视频
-      const url = await uploadVideoFile(file);
-      
+      const url = await uploadVideoFile(fileToUpload);
+
       clearInterval(progressInterval);
-      setUploadProgress({
-        fileName: file.name,
+      setUploadProgress(prev => ({
+        ...(prev ?? { fileName: file.name }),
         progress: 100,
-        status: 'success'
-      });
+        status: 'success',
+      }));
 
       setFormData(prev => ({
         ...prev,
         video_url: url,
         duration: duration,
-        title: prev.title || file.name.replace(/\.[^/.]+$/, ""), // 如果没有标题，使用文件名
+        title: prev.title || file.name.replace(/\.[^/.]+$/, ""),
       }));
 
-      // 尝试自动生成封面
+      // Attempt to auto-generate cover image from the (possibly compressed) file
       if (!formData.cover_image) {
         try {
-          const coverBlob = await generateVideoCover(file);
+          const coverBlob = await generateVideoCover(fileToUpload);
           const coverFile = new File([coverBlob], `cover_${file.name}.jpg`, { type: 'image/jpeg' });
           const coverUrl = await uploadVideoCover(coverFile);
           setFormData(prev => ({
@@ -313,27 +375,32 @@ export default function VideosManage() {
             cover_image: coverUrl,
           }));
           toast({
-            title: "封面已自动生成",
-            description: "已从视频中提取封面图",
+            title: "Cover generated",
+            description: "Thumbnail extracted automatically from video",
           });
         } catch (error) {
-          console.error("生成封面失败:", error);
-          // 封面生成失败不影响视频上传
+          console.error("Failed to generate cover:", error);
+          // Cover generation failure does not affect video upload
         }
       }
 
       toast({
-        title: "上传成功",
-        description: `视频已上传，时长: ${formatDuration(duration)}`,
+        title: "Upload successful",
+        description: `Video uploaded. Duration: ${formatDuration(duration)}`,
       });
 
       setTimeout(() => {
         setUploadProgress(null);
-      }, 2000);
+      }, 3000);
 
     } catch (error: any) {
-      console.error("上传失败:", error);
-      const errorMessage = error?.message || error?.error?.message || '上传失败，请重试';
+      console.error("Upload failed:", error);
+      // Surface the actual Supabase error message for easier diagnosis
+      const errorMessage =
+        error?.message ||
+        error?.error?.message ||
+        error?.error_description ||
+        'Upload failed — please check file size and try again';
       setUploadProgress({
         fileName: file.name,
         progress: 0,
@@ -341,7 +408,7 @@ export default function VideosManage() {
         error: errorMessage
       });
       toast({
-        title: "上传失败",
+        title: "Upload failed",
         description: errorMessage,
         variant: "destructive",
       });
@@ -351,9 +418,7 @@ export default function VideosManage() {
   };
 
   const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('handleVideoUpload 被调用');
     const file = e.target.files?.[0];
-    console.log('选择的文件:', file ? { name: file.name, size: file.size, type: file.type } : '无文件');
     if (!file) return;
     handleVideoFile(file);
   };
@@ -362,11 +427,11 @@ export default function VideosManage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // 检查文件大小（5MB）
+    // Check file size (5 MB)
     if (file.size > 5 * 1024 * 1024) {
       toast({
-        title: "文件过大",
-        description: "封面图片大小不能超过 5MB",
+        title: "File too large",
+        description: "Cover image must not exceed 5 MB",
         variant: "destructive",
       });
       return;
@@ -380,14 +445,14 @@ export default function VideosManage() {
         cover_image: url,
       });
       toast({
-        title: "上传成功",
-        description: "封面图片已上传",
+        title: "Upload successful",
+        description: "Cover image uploaded",
       });
     } catch (error) {
-      console.error("上传失败:", error);
+      console.error("Upload failed:", error);
       toast({
-        title: "上传失败",
-        description: "封面上传失败，请重试",
+        title: "Upload failed",
+        description: "Cover upload failed, please try again",
         variant: "destructive",
       });
     } finally {
@@ -398,8 +463,8 @@ export default function VideosManage() {
   const handleSubmit = async () => {
     if (!formData.title || !formData.video_url) {
       toast({
-        title: "验证失败",
-        description: "请填写标题并上传视频",
+        title: "Validation failed",
+        description: "Please enter a title and upload a video",
         variant: "destructive",
       });
       return;
@@ -409,24 +474,24 @@ export default function VideosManage() {
       if (editingVideo) {
         await updateVideo(editingVideo.id, formData);
         toast({
-          title: "更新成功",
-          description: "视频已更新",
+          title: "Updated",
+          description: "Video has been updated",
         });
       } else {
         await createVideo(formData);
         toast({
-          title: "创建成功",
-          description: "视频已创建",
+          title: "Created",
+          description: "Video has been created",
         });
       }
       setDialogOpen(false);
       resetForm();
       loadData();
     } catch (error) {
-      console.error("保存失败:", error);
+      console.error("Save failed:", error);
       toast({
-        title: "保存失败",
-        description: "操作失败，请重试",
+        title: "Save failed",
+        description: "Operation failed, please try again",
         variant: "destructive",
       });
     }
@@ -451,46 +516,46 @@ export default function VideosManage() {
   };
 
   const handleDelete = async (video: Video) => {
-    if (!confirm("确定要删除这个视频吗？")) return;
+    if (!confirm("Are you sure you want to delete this video?")) return;
 
     try {
-      // 删除视频文件
+      // Delete video file
       if (video.video_url) {
         await deleteVideoFile(video.video_url);
       }
-      // 删除封面
+      // Delete cover image
       if (video.cover_image) {
         await deleteVideoCover(video.cover_image);
       }
-      // 删除记录
+      // Delete database record
       await deleteVideo(video.id);
       toast({
-        title: "删除成功",
-        description: "视频已删除",
+        title: "Deleted",
+        description: "Video has been deleted",
       });
       loadData();
     } catch (error) {
-      console.error("删除失败:", error);
+      console.error("Delete failed:", error);
       toast({
-        title: "删除失败",
-        description: "操作失败，请重试",
+        title: "Delete failed",
+        description: "Operation failed, please try again",
         variant: "destructive",
       });
     }
   };
 
-  // 批量删除
+  // Batch delete
   const handleBatchDelete = async () => {
     if (selectedVideos.size === 0) {
       toast({
-        title: "请选择视频",
-        description: "请至少选择一个视频进行删除",
+        title: "No videos selected",
+        description: "Please select at least one video to delete",
         variant: "destructive",
       });
       return;
     }
 
-    if (!confirm(`确定要删除选中的 ${selectedVideos.size} 个视频吗？`)) return;
+    if (!confirm(`Are you sure you want to delete the selected ${selectedVideos.size} video(s)?`)) return;
 
     try {
       const deletePromises = Array.from(selectedVideos).map(async (videoId) => {
@@ -505,28 +570,28 @@ export default function VideosManage() {
       await Promise.all(deletePromises);
       
       toast({
-        title: "批量删除成功",
-        description: `已删除 ${selectedVideos.size} 个视频`,
+        title: "Batch delete successful",
+        description: `${selectedVideos.size} video(s) deleted`,
       });
       
       setSelectedVideos(new Set());
       loadData();
     } catch (error) {
-      console.error("批量删除失败:", error);
+      console.error("Batch delete failed:", error);
       toast({
-        title: "批量删除失败",
-        description: "部分视频删除失败，请重试",
+        title: "Batch delete failed",
+        description: "Some videos could not be deleted, please try again",
         variant: "destructive",
       });
     }
   };
 
-  // 批量发布/下架
+  // Batch publish / unpublish
   const handleBatchPublish = async (publish: boolean) => {
     if (selectedVideos.size === 0) {
       toast({
-        title: "请选择视频",
-        description: "请至少选择一个视频",
+        title: "No videos selected",
+        description: "Please select at least one video",
         variant: "destructive",
       });
       return;
@@ -540,23 +605,23 @@ export default function VideosManage() {
       await Promise.all(updatePromises);
       
       toast({
-        title: publish ? "批量发布成功" : "批量下架成功",
-        description: `已${publish ? '发布' : '下架'} ${selectedVideos.size} 个视频`,
+        title: publish ? "Batch publish successful" : "Batch unpublish successful",
+        description: `${selectedVideos.size} video(s) ${publish ? 'published' : 'unpublished'}`,
       });
       
       setSelectedVideos(new Set());
       loadData();
     } catch (error) {
-      console.error("批量操作失败:", error);
+      console.error("Batch operation failed:", error);
       toast({
-        title: "批量操作失败",
-        description: "部分视频操作失败，请重试",
+        title: "Batch operation failed",
+        description: "Some videos could not be updated, please try again",
         variant: "destructive",
       });
     }
   };
 
-  // 全选/取消全选
+  // Select all / deselect all
   const handleSelectAll = () => {
     if (selectedVideos.size === filteredVideos.length) {
       setSelectedVideos(new Set());
@@ -565,7 +630,7 @@ export default function VideosManage() {
     }
   };
 
-  // 单选
+  // Toggle single selection
   const handleSelectVideo = (videoId: string) => {
     const newSelected = new Set(selectedVideos);
     if (newSelected.has(videoId)) {
@@ -576,7 +641,7 @@ export default function VideosManage() {
     setSelectedVideos(newSelected);
   };
 
-  // 预览视频
+  // Preview video
   const handlePreview = (video: Video) => {
     setPreviewVideo(video);
     setPreviewDialogOpen(true);
@@ -615,7 +680,7 @@ export default function VideosManage() {
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  // 统计数据
+  // Stats summary
   const stats = {
     total: videos.length,
     published: videos.filter(v => v.is_published).length,
@@ -627,74 +692,74 @@ export default function VideosManage() {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-lg">加载中...</span>
+        <span className="ml-2 text-lg">Loading...</span>
       </div>
     );
   }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      {/* 统计卡片 */}
+      {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">视频总数</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Videos</CardTitle>
             <FileVideo className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              所有视频数量
+              All videos
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">已发布</CardTitle>
+            <CardTitle className="text-sm font-medium">Published</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.published}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              已发布的视频
+              Published videos
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">草稿</CardTitle>
+            <CardTitle className="text-sm font-medium">Drafts</CardTitle>
             <Clock className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">{stats.draft}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              未发布的视频
+              Unpublished videos
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">总浏览量</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Views</CardTitle>
             <Eye className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">{stats.totalViews}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              所有视频浏览量
+              Views across all videos
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 主内容卡片 */}
+      {/* Main content card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>视频管理</CardTitle>
-            <CardDescription>管理您的视频内容</CardDescription>
+            <CardTitle>Video Management</CardTitle>
+            <CardDescription>Manage your video content</CardDescription>
           </div>
           <Dialog open={dialogOpen} onOpenChange={(open) => {
             setDialogOpen(open);
@@ -703,24 +768,24 @@ export default function VideosManage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                添加视频
+                Add Video
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingVideo ? "编辑视频" : "添加视频"}</DialogTitle>
+                <DialogTitle>{editingVideo ? "Edit Video" : "Add Video"}</DialogTitle>
               </DialogHeader>
               
               <Tabs defaultValue="basic" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="basic">基本信息</TabsTrigger>
-                  <TabsTrigger value="seo">SEO 设置</TabsTrigger>
+                  <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                  <TabsTrigger value="seo">SEO Settings</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="basic" className="space-y-4 mt-4">
-                  {/* 视频上传区域 */}
+                  {/* Video upload area */}
                   <div>
-                    <Label>视频文件 *</Label>
+                    <Label>Video File *</Label>
                     <div
                       onDragEnter={handleDrag}
                       onDragLeave={handleDrag}
@@ -732,13 +797,14 @@ export default function VideosManage() {
                     >
                       <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                       <p className="text-sm text-muted-foreground mb-2">
-                        拖拽视频文件到这里，或点击选择文件
+                        Drag a video file here, or click to select a file
                       </p>
                       <p className="text-xs text-muted-foreground mb-4">
-                        支持 MP4, MOV, AVI, MKV, WebM 等格式，最大 50GB
+                        Supports MP4, MOV, AVI, MKV, WebM and more · max 5 GB · files &gt;50 MB auto-compressed
                       </p>
-                      <p className="text-xs text-success/70 mb-4">
-                        ✅ PRO 版已激活 - 支持超大文件上传
+                      <p className="text-xs text-primary/70 mb-4 flex items-center justify-center gap-1">
+                        <Zap className="h-3 w-3" />
+                        Videos larger than 50 MB will be automatically compressed in-browser before upload
                       </p>
                       <Input
                         ref={videoInputRef}
@@ -751,8 +817,6 @@ export default function VideosManage() {
                         type="button"
                         variant="outline"
                         onClick={() => {
-                          console.log('选择视频按钮被点击');
-                          console.log('videoInputRef.current:', videoInputRef.current);
                           videoInputRef.current?.click();
                         }}
                         disabled={uploading}
@@ -760,36 +824,61 @@ export default function VideosManage() {
                         {uploading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            上传中...
+                            {uploadProgress?.status === 'compressing' ? 'Compressing…' : 'Uploading…'}
                           </>
                         ) : (
                           <>
                             <Upload className="mr-2 h-4 w-4" />
-                            选择视频文件
+                            Select Video File
                           </>
                         )}
                       </Button>
                     </div>
 
-                    {/* 上传进度 */}
+                    {/* Upload / compression progress */}
                     {uploadProgress && (
-                      <div className="mt-4 p-4 border rounded-lg">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium">{uploadProgress.fileName}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {uploadProgress.progress}%
-                          </span>
+                      <div className="mt-4 p-4 border rounded-lg space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium truncate max-w-[60%]">{uploadProgress.fileName}</span>
+                          <span className="text-sm text-muted-foreground shrink-0">{uploadProgress.progress}%</span>
                         </div>
+
+                        {/* Phase label */}
+                        {uploadProgress.status === 'compressing' && (
+                          <p className="text-xs text-primary flex items-center gap-1">
+                            <Zap className="h-3 w-3 animate-pulse" />
+                            Compressing video with FFmpeg…
+                          </p>
+                        )}
+                        {uploadProgress.status === 'uploading' && (
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Uploading to cloud storage…
+                          </p>
+                        )}
+
                         <Progress value={uploadProgress.progress} className="h-2" />
+
+                        {/* Size comparison after compression */}
+                        {uploadProgress.originalSize && uploadProgress.compressedSize && (
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(uploadProgress.originalSize)} → {formatFileSize(uploadProgress.compressedSize)}
+                            {' '}
+                            <span className="text-primary font-medium">
+                              ({Math.round((1 - uploadProgress.compressedSize / uploadProgress.originalSize) * 100)}% smaller)
+                            </span>
+                          </p>
+                        )}
+
                         {uploadProgress.status === 'success' && (
-                          <p className="text-sm text-green-600 mt-2 flex items-center">
-                            <CheckSquare className="h-4 w-4 mr-1" />
-                            上传成功
+                          <p className="text-sm text-green-600 flex items-center gap-1">
+                            <CheckSquare className="h-4 w-4" />
+                            Upload successful
                           </p>
                         )}
                         {uploadProgress.status === 'error' && (
-                          <p className="text-sm text-destructive mt-2 flex items-center">
-                            <X className="h-4 w-4 mr-1" />
+                          <p className="text-sm text-destructive flex items-center gap-1">
+                            <X className="h-4 w-4" />
                             {uploadProgress.error}
                           </p>
                         )}
@@ -799,31 +888,31 @@ export default function VideosManage() {
                     {formData.video_url && !uploadProgress && (
                       <div className="mt-2 text-sm text-green-600 flex items-center">
                         <CheckSquare className="h-4 w-4 mr-1" />
-                        视频已上传
+                        Video uploaded
                       </div>
                     )}
                   </div>
 
-                  {/* 标题 */}
+                  {/* Title */}
                   <div>
-                    <Label htmlFor="title">标题 *</Label>
+                    <Label htmlFor="title">Title *</Label>
                     <Input
                       id="title"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                      placeholder="输入视频标题"
+                      placeholder="Enter video title"
                     />
                   </div>
 
-                  {/* 分类 */}
+                  {/* Category */}
                   <div>
-                    <Label htmlFor="category">分类</Label>
+                    <Label htmlFor="category">Category</Label>
                     <Select
                       value={formData.category_id}
                       onValueChange={(value) => setFormData({ ...formData, category_id: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="选择分类" />
+                        <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
                         {categories.map((cat) => (
@@ -835,21 +924,21 @@ export default function VideosManage() {
                     </Select>
                   </div>
 
-                  {/* 简介 */}
+                  {/* Description */}
                   <div>
-                    <Label htmlFor="description">简介</Label>
+                    <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="输入视频简介"
+                      placeholder="Enter video description"
                       rows={3}
                     />
                   </div>
 
-                  {/* 封面图片 */}
+                  {/* Cover image */}
                   <div>
-                    <Label htmlFor="cover">封面图片</Label>
+                    <Label htmlFor="cover">Cover Image</Label>
                     <div className="mt-2">
                       <Input
                         ref={coverInputRef}
@@ -867,13 +956,13 @@ export default function VideosManage() {
                         className="w-full"
                       >
                         <ImageIcon className="mr-2 h-4 w-4" />
-                        {formData.cover_image ? '更换封面' : '上传封面'}
+                        {formData.cover_image ? 'Replace cover' : 'Upload cover'}
                       </Button>
                       {formData.cover_image && (
                         <div className="mt-2 relative">
                           <img
                             src={formData.cover_image}
-                            alt="封面预览"
+                            alt="Cover preview"
                             className="w-full h-40 object-cover rounded"
                           />
                           <Button
@@ -889,74 +978,74 @@ export default function VideosManage() {
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                      如果不上传，系统会自动从视频中提取封面
+                      If not uploaded, a cover will be extracted automatically from the video
                     </p>
                   </div>
 
-                  {/* 时长 */}
+                  {/* Duration */}
                   <div>
-                    <Label htmlFor="duration">时长（秒）</Label>
+                    <Label htmlFor="duration">Duration (seconds)</Label>
                     <Input
                       id="duration"
                       type="number"
                       value={formData.duration}
                       onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
-                      placeholder="视频时长"
+                      placeholder="Video duration"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      上传视频时会自动提取时长
+                      Duration is extracted automatically when a video is uploaded
                     </p>
                   </div>
 
-                  {/* 发布状态 */}
+                  {/* Publish status */}
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="is_published"
                       checked={formData.is_published}
                       onCheckedChange={(checked) => setFormData({ ...formData, is_published: checked })}
                     />
-                    <Label htmlFor="is_published">立即发布</Label>
+                    <Label htmlFor="is_published">Publish immediately</Label>
                   </div>
                 </TabsContent>
 
                 <TabsContent value="seo" className="space-y-4 mt-4">
                   <div>
-                    <Label htmlFor="seo_title">SEO 标题</Label>
+                    <Label htmlFor="seo_title">SEO Title</Label>
                     <Input
                       id="seo_title"
                       value={formData.seo_title}
                       onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
-                      placeholder="输入 SEO 标题"
+                      placeholder="Enter SEO title"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      如果不填写，将使用视频标题
+                      If left blank, the video title will be used
                     </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="seo_description">SEO 描述</Label>
+                    <Label htmlFor="seo_description">SEO Description</Label>
                     <Textarea
                       id="seo_description"
                       value={formData.seo_description}
                       onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
-                      placeholder="输入 SEO 描述"
+                      placeholder="Enter SEO description"
                       rows={3}
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      建议 150-160 个字符
+                      Recommended 150–160 characters
                     </p>
                   </div>
 
                   <div>
-                    <Label htmlFor="seo_keywords">SEO 关键词</Label>
+                    <Label htmlFor="seo_keywords">SEO Keywords</Label>
                     <Input
                       id="seo_keywords"
                       value={formData.seo_keywords}
                       onChange={(e) => setFormData({ ...formData, seo_keywords: e.target.value })}
-                      placeholder="输入关键词，用逗号分隔"
+                      placeholder="Enter keywords, comma-separated"
                     />
                     <p className="text-xs text-muted-foreground mt-1">
-                      例如：手机维修, iPhone, 屏幕更换
+                      Example: phone repair, iPhone, screen replacement
                     </p>
                   </div>
                 </TabsContent>
@@ -964,10 +1053,10 @@ export default function VideosManage() {
 
               <div className="flex justify-end gap-2 mt-6">
                 <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                  取消
+                  Cancel
                 </Button>
                 <Button onClick={handleSubmit} disabled={uploading}>
-                  {editingVideo ? "更新" : "创建"}
+                  {editingVideo ? "Update" : "Create"}
                 </Button>
               </div>
             </DialogContent>
@@ -975,13 +1064,13 @@ export default function VideosManage() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* 搜索和筛选工具栏 */}
+          {/* Search and filter toolbar */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="搜索视频标题或描述..."
+                  placeholder="Search video title or description..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -991,10 +1080,10 @@ export default function VideosManage() {
             
             <Select value={filterCategory} onValueChange={setFilterCategory}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="筛选分类" />
+                <SelectValue placeholder="Filter by category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部分类</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
                 ))}
@@ -1003,23 +1092,23 @@ export default function VideosManage() {
 
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="筛选状态" />
+                <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">全部状态</SelectItem>
-                <SelectItem value="published">已发布</SelectItem>
-                <SelectItem value="draft">草稿</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="published">Published</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-full md:w-[180px]">
-                <SelectValue placeholder="排序方式" />
+                <SelectValue placeholder="Sort by" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="created_at">创建时间</SelectItem>
-                <SelectItem value="view_count">浏览量</SelectItem>
-                <SelectItem value="title">标题</SelectItem>
+                <SelectItem value="created_at">Date Created</SelectItem>
+                <SelectItem value="view_count">View Count</SelectItem>
+                <SelectItem value="title">Title</SelectItem>
               </SelectContent>
             </Select>
 
@@ -1032,32 +1121,32 @@ export default function VideosManage() {
             </Button>
           </div>
 
-          {/* 批量操作工具栏 */}
+          {/* Batch action toolbar */}
           {selectedVideos.size > 0 && (
             <div className="flex items-center gap-2 p-4 bg-muted rounded-lg">
               <span className="text-sm font-medium">
-                已选择 {selectedVideos.size} 个视频
+                {selectedVideos.size} video(s) selected
               </span>
               <div className="flex-1" />
               <Button variant="outline" size="sm" onClick={() => handleBatchPublish(true)}>
-                批量发布
+                Publish all
               </Button>
               <Button variant="outline" size="sm" onClick={() => handleBatchPublish(false)}>
-                批量下架
+                Unpublish all
               </Button>
               <Button variant="destructive" size="sm" onClick={handleBatchDelete}>
                 <Trash2 className="h-4 w-4 mr-1" />
-                批量删除
+                Delete all
               </Button>
             </div>
           )}
 
-          {/* 视频列表 */}
+          {/* Video list */}
           {filteredVideos.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               {searchQuery || filterCategory !== "all" || filterStatus !== "all" 
-                ? "没有找到匹配的视频" 
-                : "还没有视频，点击上方按钮添加"}
+                ? "No videos match your search" 
+                : "No videos yet — click the button above to add one"}
             </div>
           ) : (
             <Table>
@@ -1069,13 +1158,13 @@ export default function VideosManage() {
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
-                  <TableHead>封面</TableHead>
-                  <TableHead>标题</TableHead>
-                  <TableHead>分类</TableHead>
-                  <TableHead>时长</TableHead>
-                  <TableHead>浏览量</TableHead>
-                  <TableHead>状态</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
+                  <TableHead>Cover</TableHead>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Views</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1123,7 +1212,7 @@ export default function VideosManage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={video.is_published ? "default" : "secondary"}>
-                        {video.is_published ? "已发布" : "草稿"}
+                        {video.is_published ? "Published" : "Draft"}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -1160,7 +1249,7 @@ export default function VideosManage() {
         </CardContent>
       </Card>
 
-      {/* 视频预览对话框 */}
+      {/* Video preview dialog */}
       <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
@@ -1177,27 +1266,27 @@ export default function VideosManage() {
               />
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="font-medium">时长：</span>
+                  <span className="font-medium">Duration: </span>
                   {formatDuration(previewVideo.duration || 0)}
                 </div>
                 <div>
-                  <span className="font-medium">浏览量：</span>
+                  <span className="font-medium">Views: </span>
                   {previewVideo.view_count || 0}
                 </div>
                 <div>
-                  <span className="font-medium">分类：</span>
+                  <span className="font-medium">Category: </span>
                   {categories.find(c => c.id === previewVideo.category_id)?.name || '-'}
                 </div>
                 <div>
-                  <span className="font-medium">状态：</span>
+                  <span className="font-medium">Status: </span>
                   <Badge variant={previewVideo.is_published ? "default" : "secondary"} className="ml-2">
-                    {previewVideo.is_published ? "已发布" : "草稿"}
+                    {previewVideo.is_published ? "Published" : "Draft"}
                   </Badge>
                 </div>
               </div>
               {previewVideo.description && (
                 <div>
-                  <p className="font-medium mb-2">描述：</p>
+                  <p className="font-medium mb-2">Description:</p>
                   <p className="text-sm text-muted-foreground">{previewVideo.description}</p>
                 </div>
               )}

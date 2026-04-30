@@ -114,34 +114,6 @@ export interface ProductImage {
   created_at: string;
 }
 
-// 幻灯片类型
-export interface Slide {
-  id: string;
-  title: string;
-  description: string | null;
-  image_url: string;
-  product_id: string | null;
-  link_url: string | null;
-  display_order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface SlideWithProduct extends Slide {
-  product?: Product;
-}
-
-export interface SlideFormData {
-  title: string;
-  description?: string;
-  image_url: string;
-  product_id?: string | null;
-  link_url?: string | null;
-  display_order: number;
-  is_active: boolean;
-}
-
 export interface Question {
   id: string;
   title: string;
@@ -819,6 +791,23 @@ export interface AnalyticsOverview {
   total_visitors: number;
   avg_duration: number;
   bounce_rate: number;
+}
+
+// 在线访客（5分钟内活跃）
+export interface OnlineVisitor {
+  visitor_id: string;
+  session_id: string;
+  page_url: string;
+  page_title: string | null;
+  ip_address: string | null;
+  country: string | null;
+  country_code: string | null;
+  city: string | null;
+  device_type: string | null;
+  browser: string | null;
+  os: string | null;
+  isp: string | null;
+  last_seen: string;
 }
 
 // 消息模板类型

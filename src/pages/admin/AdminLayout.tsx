@@ -26,7 +26,8 @@ import {
   FileCode,
   ShieldCheck,
   Smartphone,
-  Database
+  Database,
+  ArrowLeftRight
 } from "lucide-react";
 
 export default function AdminLayout() {
@@ -39,6 +40,7 @@ export default function AdminLayout() {
 
   const menuItems = [
     { path: "/admin", icon: LayoutDashboard, label: "仪表盘", group: "概览" },
+    { path: "/admin/articles", icon: FileText, label: "文章管理", group: "内容管理" },
     { path: "/admin/products", icon: Package, label: "产品管理", group: "内容管理" },
     { path: "/admin/downloads", icon: Download, label: "下载管理", group: "内容管理" },
     { path: "/admin/videos", icon: Video, label: "视频管理", group: "内容管理" },
@@ -51,7 +53,7 @@ export default function AdminLayout() {
     { path: "/admin/analytics", icon: BarChart3, label: "流量统计", adminOnly: true, group: "数据分析" },
     { path: "/admin/seo/settings", icon: Search, label: "SEO全局设置", adminOnly: true, group: "SEO管理" },
     { path: "/admin/seo/pages", icon: FileText, label: "页面SEO管理", adminOnly: true, group: "SEO管理" },
-    { path: "/admin/seo/redirects", icon: TrendingUp, label: "URL重定向", adminOnly: true, group: "SEO管理" },
+    { path: "/admin/seo/redirects", icon: ArrowLeftRight, label: "URL重定向", adminOnly: true, group: "SEO管理" },
     { path: "/admin/seo/sitemap", icon: Globe, label: "站点地图", adminOnly: true, group: "SEO管理" },
     { path: "/admin/verification-files", icon: ShieldCheck, label: "验证文件管理", adminOnly: true, group: "SEO管理" },
     { path: "/admin/wechat-config", icon: Smartphone, label: "微信配置", adminOnly: true, group: "系统设置" },

@@ -5,16 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import { getModuleSetting, updateModuleSetting } from "@/db/api";
 import ImageUpload from "@/components/common/ImageUpload";
-import { FileText, Save, Image as ImageIcon } from "lucide-react";
-import type { ModuleSetting, ModuleSettingFormData } from "@/types";
+import { FileText, Save, Image as ImageIcon, Power } from "lucide-react";
+import type { ModuleSettingFormData } from "@/types";
 
 export default function ArticleSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState<ModuleSetting | null>(null);
+  const [toggling, setToggling] = useState(false);
   const [formData, setFormData] = useState<ModuleSettingFormData>({
     display_name: "Articles",
     banner_image: null,
@@ -30,7 +31,6 @@ export default function ArticleSettings() {
     allow_comments: false,
     custom_settings: {}
   });
-  const { toast } = useToast();
 
   useEffect(() => {
     loadSettings();
@@ -41,7 +41,6 @@ export default function ArticleSettings() {
     try {
       const data = await getModuleSetting("articles");
       if (data) {
-        setSettings(data);
         setFormData({
           display_name: data.display_name,
           banner_image: data.banner_image,
@@ -60,13 +59,30 @@ export default function ArticleSettings() {
       }
     } catch (error) {
       console.error("Failed to load settings:", error);
-      toast({
-        title: "Loading failed",
-        description: "Failed to load article module settings",
-        variant: "destructive"
-      });
+      toast.error("加载失败", { description: "无法加载文章模块设置" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 模块开关：单独保存，立即生效
+  const handleToggleModule = async (enabled: boolean) => {
+    setToggling(true);
+    try {
+      await updateModuleSetting("articles", { ...formData, is_enabled: enabled });
+      setFormData((prev) => ({ ...prev, is_enabled: enabled }));
+      // 广播设置变更，Header 等组件立即响应
+      window.dispatchEvent(new Event("settingsUpdated"));
+      toast.success(enabled ? "文章模块已开启" : "文章模块已关闭", {
+        description: enabled
+          ? "前端文章入口和页面已恢复显示"
+          : "前端文章入口和页面已隐藏，后台数据完整保留",
+      });
+    } catch (error) {
+      console.error("Toggle module failed:", error);
+      toast.error("操作失败", { description: "模块状态切换失败，请重试" });
+    } finally {
+      setToggling(false);
     }
   };
 
@@ -75,20 +91,12 @@ export default function ArticleSettings() {
     setSaving(true);
     try {
       await updateModuleSetting("articles", formData);
-      toast({
-        title: "Saved successfully",
-        description: "Article module settings updated"
-      });
+      toast.success("保存成功", { description: "文章模块设置已更新" });
       loadSettings();
-      // 触发自定义事件通知HeaderComponentRefreshSettings
       window.dispatchEvent(new Event("settingsUpdated"));
     } catch (error) {
       console.error("SaveSettingsFailed:", error);
-      toast({
-        title: "Save failed",
-        description: "Failed to save article module settings",
-        variant: "destructive"
-      });
+      toast.error("保存失败", { description: "无法保存文章模块设置" });
     } finally {
       setSaving(false);
     }
@@ -107,20 +115,60 @@ export default function ArticleSettings() {
       <div>
         <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
           <FileText className="h-8 w-8" />
-          ArticlesModule Settings
+          Article Module Settings
         </h1>
-        <p className="text-muted-foreground">配置Articles模块的ShowName、栏目Image、SEO Settings等</p>
+        <p className="text-muted-foreground">配置文章模块的前端显示、SEO 及展示选项</p>
       </div>
 
+      {/* ── 模块开关（置顶，独立保存，立即生效）── */}
+      <Card className={formData.is_enabled ? "border-border" : "border-destructive/40 bg-destructive/5"}>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${formData.is_enabled ? "bg-primary/10" : "bg-muted"}`}>
+                <Power className={`h-5 w-5 ${formData.is_enabled ? "text-primary" : "text-muted-foreground"}`} />
+              </div>
+              <div>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  前端模块开关
+                  <Badge variant={formData.is_enabled ? "default" : "secondary"}>
+                    {formData.is_enabled ? "已开启" : "已关闭"}
+                  </Badge>
+                </CardTitle>
+                <CardDescription className="mt-0.5">
+                  {formData.is_enabled
+                    ? "文章模块当前在前端正常显示，包括导航入口、列表页、详情页"
+                    : "文章模块已关闭：前端导航入口和所有文章页面已隐藏，后台数据完整保留"}
+                </CardDescription>
+              </div>
+            </div>
+            <Switch
+              checked={formData.is_enabled}
+              disabled={toggling}
+              onCheckedChange={handleToggleModule}
+              className="shrink-0"
+            />
+          </div>
+        </CardHeader>
+        {!formData.is_enabled && (
+          <CardContent className="pt-0">
+            <div className="text-sm text-muted-foreground bg-muted rounded-md px-4 py-3">
+              <strong>关闭状态说明：</strong>前端导航栏文章入口已隐藏；访问文章相关 URL 将自动跳转到首页；后台文章数据、抓取任务、翻译等内容完整保留，随时可重新开启。
+            </div>
+          </CardContent>
+        )}
+      </Card>
+
+      {/* ── 其余设置表单 ── */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>基本Settings</CardTitle>
-            <CardDescription>配置Articles模块的基本信息</CardDescription>
+            <CardTitle>基本设置</CardTitle>
+            <CardDescription>配置文章模块的显示名称和顺序</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="display_name">模块ShowName *</Label>
+              <Label htmlFor="display_name">模块显示名称 *</Label>
               <Input
                 id="display_name"
                 value={formData.display_name}
@@ -128,26 +176,11 @@ export default function ArticleSettings() {
                 placeholder="例如：Articles、博客、资讯"
                 required
               />
-              <p className="text-sm text-muted-foreground">
-                此Name将在前端导航栏和Page Title中Show
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>Enable模块</Label>
-                <p className="text-sm text-muted-foreground">
-                  Close后，Articles模块将在前端Hide
-                </p>
-              </div>
-              <Switch
-                checked={formData.is_enabled}
-                onCheckedChange={(checked) => setFormData({ ...formData, is_enabled: checked })}
-              />
+              <p className="text-sm text-muted-foreground">此名称将显示在前端导航栏和页面标题中</p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="sort_order">Order</Label>
+              <Label htmlFor="sort_order">排列顺序</Label>
               <Input
                 id="sort_order"
                 type="number"
@@ -155,9 +188,7 @@ export default function ArticleSettings() {
                 onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
                 placeholder="0"
               />
-              <p className="text-sm text-muted-foreground">
-                数字越小，在导航栏中的位置越靠前
-              </p>
+              <p className="text-sm text-muted-foreground">数字越小，在导航栏中的位置越靠前</p>
             </div>
           </CardContent>
         </Card>
@@ -166,9 +197,9 @@ export default function ArticleSettings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ImageIcon className="h-5 w-5" />
-              栏目Image
+              栏目横幅图片
             </CardTitle>
-            <CardDescription>UploadArticles模块的栏目横幅Image</CardDescription>
+            <CardDescription>上传文章模块的栏目横幅图片</CardDescription>
           </CardHeader>
           <CardContent>
             <ImageUpload
@@ -176,68 +207,57 @@ export default function ArticleSettings() {
               onChange={(url) => setFormData({ ...formData, banner_image: url })}
               onRemove={() => setFormData({ ...formData, banner_image: null })}
             />
-            <p className="text-sm text-muted-foreground mt-2">
-              建议尺寸：1200x400 像素，支持 JPG、PNG Format
-            </p>
+            <p className="text-sm text-muted-foreground mt-2">建议尺寸：1200x400 像素，支持 JPG、PNG 格式</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>SEO Settings</CardTitle>
-            <CardDescription>优化Article ListPage的Search引擎表现</CardDescription>
+            <CardTitle>SEO 设置</CardTitle>
+            <CardDescription>优化文章列表页的搜索引擎表现</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="seo_title">SEO Title</Label>
+              <Label htmlFor="seo_title">SEO 标题</Label>
               <Input
                 id="seo_title"
                 value={formData.seo_title || ""}
                 onChange={(e) => setFormData({ ...formData, seo_title: e.target.value })}
-                placeholder="Article List - Site Name"
+                placeholder="文章列表 - 网站名称"
               />
-              <p className="text-sm text-muted-foreground">
-                Show在Search引擎结果和浏览器TagsPage中
-              </p>
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="seo_keywords">SEO Keywords</Label>
+              <Label htmlFor="seo_keywords">SEO 关键词</Label>
               <Input
                 id="seo_keywords"
                 value={formData.seo_keywords || ""}
                 onChange={(e) => setFormData({ ...formData, seo_keywords: e.target.value })}
-                placeholder="Articles,博客,资讯,Content"
+                placeholder="文章,博客,资讯,内容"
               />
-              <p className="text-sm text-muted-foreground">
-                多个Keywords用英文逗号分隔
-              </p>
+              <p className="text-sm text-muted-foreground">多个关键词用英文逗号分隔</p>
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="seo_description">SEO Description</Label>
+              <Label htmlFor="seo_description">SEO 描述</Label>
               <Textarea
                 id="seo_description"
                 value={formData.seo_description || ""}
                 onChange={(e) => setFormData({ ...formData, seo_description: e.target.value })}
-                placeholder="浏览我们的Article List，获取最新资讯和深度Content"
+                placeholder="浏览我们的文章列表，获取最新资讯和深度内容"
                 rows={3}
               />
-              <p className="text-sm text-muted-foreground">
-                Show在Search引擎结果中，建议 120-160 字符
-              </p>
+              <p className="text-sm text-muted-foreground">建议 120–160 字符</p>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>ShowSettings</CardTitle>
-            <CardDescription>配置Article List和DetailPage的Show选项</CardDescription>
+            <CardTitle>展示设置</CardTitle>
+            <CardDescription>配置文章列表和详情页的展示选项</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="items_per_page">per pageShowCount</Label>
+              <Label htmlFor="items_per_page">每页显示数量</Label>
               <Input
                 id="items_per_page"
                 type="number"
@@ -246,75 +266,41 @@ export default function ArticleSettings() {
                 value={formData.items_per_page}
                 onChange={(e) => setFormData({ ...formData, items_per_page: parseInt(e.target.value) || 12 })}
               />
-              <p className="text-sm text-muted-foreground">
-                Article Listper pageShow的ArticlesCount
-              </p>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>ShowAuthor</Label>
-                <p className="text-sm text-muted-foreground">
-                  在Article List和DetailPageShowAuthor信息
-                </p>
+            {(
+              [
+                { key: "show_author", label: "显示作者", desc: "在文章列表和详情页显示作者信息" },
+                { key: "show_date", label: "显示日期", desc: "在文章列表和详情页显示发布日期" },
+                { key: "show_category", label: "显示分类", desc: "在文章列表和详情页显示分类标签" },
+                { key: "allow_comments", label: "允许评论", desc: "开启后，用户可在文章详情页发表评论（功能待开发）" },
+              ] as const
+            ).map(({ key, label, desc }) => (
+              <div key={key} className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>{label}</Label>
+                  <p className="text-sm text-muted-foreground">{desc}</p>
+                </div>
+                <Switch
+                  checked={formData[key] as boolean}
+                  onCheckedChange={(checked) => setFormData({ ...formData, [key]: checked })}
+                />
               </div>
-              <Switch
-                checked={formData.show_author}
-                onCheckedChange={(checked) => setFormData({ ...formData, show_author: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>ShowDate</Label>
-                <p className="text-sm text-muted-foreground">
-                  在Article List和DetailPageShow发布Date
-                </p>
-              </div>
-              <Switch
-                checked={formData.show_date}
-                onCheckedChange={(checked) => setFormData({ ...formData, show_date: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>ShowCategory</Label>
-                <p className="text-sm text-muted-foreground">
-                  在Article List和DetailPageShowCategoryTags
-                </p>
-              </div>
-              <Switch
-                checked={formData.show_category}
-                onCheckedChange={(checked) => setFormData({ ...formData, show_category: checked })}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label>允许评论</Label>
-                <p className="text-sm text-muted-foreground">
-                  开启后，User可以在Article DetailPage发表评论（功能待开发）
-                </p>
-              </div>
-              <Switch
-                checked={formData.allow_comments}
-                onCheckedChange={(checked) => setFormData({ ...formData, allow_comments: checked })}
-              />
-            </div>
+            ))}
           </CardContent>
         </Card>
 
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={loadSettings}>
-            Reset
+            重置
           </Button>
           <Button type="submit" disabled={saving}>
             <Save className="h-4 w-4 mr-2" />
-            {saving ? "Save中..." : "SaveSettings"}
+            {saving ? "保存中..." : "保存设置"}
           </Button>
         </div>
       </form>
     </div>
   );
 }
+

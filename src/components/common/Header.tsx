@@ -36,7 +36,12 @@ import TranslatedText from "@/components/common/TranslatedText";export default f
   const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const { t } = useTranslation();
-  const navigation = routes.filter((route) => route.visible !== false);
+  const navigation = routes.filter((route) => {
+    if (route.visible === false) return false;
+    // 文章模块关闭时，从导航栏隐藏文章入口
+    if (route.path === "/articles" && moduleSettings.articles?.is_enabled === false) return false;
+    return true;
+  });
 
   // Function to load data
   const loadData = async () => {

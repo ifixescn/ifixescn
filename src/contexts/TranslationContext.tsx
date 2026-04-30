@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, ReactNode } from "react";
 import { supabase } from "@/db/supabase";
-import { getTranslation } from "@/i18n/translations";
+import { getTranslation, TRANSLATIONS } from "@/i18n/translations";
 
 export interface Language {
   id: string;
@@ -38,8 +38,37 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
   const [currentLang, setCurrentLang] = useState<string>("en");
   const [defaultLang, setDefaultLang] = useState<string>("en");
   const [isLoading, setIsLoading] = useState(true);
-  // 内存中的翻译缓存，避免重复网络请求
+  /** 内存中的翻译缓存，避免重复网络请求 */
   const memCache = useRef<Map<string, string>>(new Map());
+
+  /**
+   * 将静态字典中 英文原文 -> 目标语言文本 的映射预填充到 memCache。
+   * 这样 translateText("Repair Anything.", "zh-CN") 能直接命中缓存，
+   * 无需调用 Edge Function，同时也确保所有静态字典语言在 TranslatedText 中即时响应。
+   */
+  const seedCacheFromStaticDict = useCallback((targetLang: string, defLang: string) => {
+    if (targetLang === defLang) return;
+    const enDict = TRANSLATIONS["en"] ?? {};
+    const targetDict = TRANSLATIONS[targetLang] ?? {};
+    // 也尝试主语言代码匹配，例如 "zh-CN" -> "zh"
+    const mainCode = targetLang.split("-")[0].toLowerCase();
+    const byMain = Object.keys(TRANSLATIONS).find(
+      (l) => l !== "en" && l.toLowerCase().startsWith(mainCode)
+    );
+    const fallbackDict = byMain ? (TRANSLATIONS[byMain] ?? {}) : {};
+
+    Object.entries(enDict).forEach(([key, enValue]) => {
+      if (!enValue) return;
+      const translated = targetDict[key] || fallbackDict[key];
+      if (!translated) return;
+      const cacheKey = `${targetLang}:${enValue}`;
+      memCache.current.set(cacheKey, translated);
+      // 同步写入 localStorage，跨会话生效
+      try {
+        localStorage.setItem(`${CACHE_PREFIX}${cacheKey}`, translated);
+      } catch { /* localStorage 写满时忽略 */ }
+    });
+  }, []);
 
   // 加载可用语言列表
   const reloadLanguages = useCallback(async () => {
@@ -78,13 +107,16 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
     const init = async () => {
       setIsLoading(true);
       const langs = await reloadLanguages();
+      const defLang = langs.find((l) => l.is_default)?.language_code ?? "en";
       const saved = localStorage.getItem(LANG_STORAGE_KEY);
       if (saved && langs.find((l) => l.language_code === saved)) {
         setCurrentLang(saved);
+        seedCacheFromStaticDict(saved, defLang);
       } else {
         const detected = detectBrowserLang(langs);
         setCurrentLang(detected);
         localStorage.setItem(LANG_STORAGE_KEY, detected);
+        seedCacheFromStaticDict(detected, defLang);
       }
       setIsLoading(false);
     };
@@ -101,14 +133,15 @@ export function TranslationProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [reloadLanguages, detectBrowserLang]);
+  }, [reloadLanguages, detectBrowserLang, seedCacheFromStaticDict]);
 
-  // 切换语言，清空内存缓存以让新语言重新翻译
+  // 切换语言：清空内存缓存并重新预填充静态字典缓存
   const setLanguage = useCallback((code: string) => {
     setCurrentLang(code);
     localStorage.setItem(LANG_STORAGE_KEY, code);
     memCache.current.clear();
-  }, []);
+    seedCacheFromStaticDict(code, defaultLang);
+  }, [defaultLang, seedCacheFromStaticDict]);
 
   // ——— 静态 UI 文字翻译（本地字典，瞬时响应）———
   const t = useCallback(

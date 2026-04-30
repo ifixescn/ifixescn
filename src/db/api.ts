@@ -5,9 +5,6 @@ import type {
   Article,
   Product,
   ProductImage,
-  Slide,
-  SlideWithProduct,
-  SlideFormData,
   Question,
   Answer,
   SiteSetting,
@@ -597,113 +594,6 @@ export async function toggleProductFeatured(id: string, isFeatured: boolean) {
 export async function incrementProductViews(id: string) {
   const { error } = await supabase.rpc("increment_product_views", { product_id: id });
   if (error) console.error("Failed to increase view count:", error);
-}
-
-// ==================== Slide related ====================
-
-// Get enabled slides list (frontend)
-export async function getActiveSlides() {
-  const { data, error } = await supabase
-    .from("slides")
-    .select(`
-      *,
-      product:products(id, name, slug, description, price)
-    `)
-    .eq("is_active", true)
-    .order("display_order", { ascending: true });
-
-  if (error) throw error;
-  return (data || []) as SlideWithProduct[];
-}
-
-// Get all slides list (backend)
-export async function getAllSlides() {
-  const { data, error } = await supabase
-    .from("slides")
-    .select(`
-      *,
-      product:products(id, name, slug, description, price)
-    `)
-    .order("display_order", { ascending: true });
-
-  if (error) throw error;
-  return (data || []) as SlideWithProduct[];
-}
-
-// Get single slide
-export async function getSlideById(id: string) {
-  const { data, error } = await supabase
-    .from("slides")
-    .select(`
-      *,
-      product:products(id, name, slug, description, price)
-    `)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data as SlideWithProduct | null;
-}
-
-// Create slide
-export async function createSlide(slideData: SlideFormData) {
-  const { data, error } = await supabase
-    .from("slides")
-    .insert([slideData])
-    .select()
-    .maybeSingle();
-
-  if (error) throw error;
-  return data as Slide | null;
-}
-
-// Update slide
-export async function updateSlide(id: string, slideData: Partial<SlideFormData>) {
-  const { data, error } = await supabase
-    .from("slides")
-    .update(slideData)
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-
-  if (error) throw error;
-  return data as Slide | null;
-}
-
-// Delete slide
-export async function deleteSlide(id: string) {
-  const { error } = await supabase
-    .from("slides")
-    .delete()
-    .eq("id", id);
-
-  if (error) throw error;
-}
-
-// Toggle slide enabled status
-export async function toggleSlideActive(id: string, isActive: boolean) {
-  const { data, error } = await supabase
-    .from("slides")
-    .update({ is_active: isActive })
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-
-  if (error) throw error;
-  return data as Slide | null;
-}
-
-// Update slidedisplay order
-export async function updateSlideOrder(id: string, displayOrder: number) {
-  const { data, error } = await supabase
-    .from("slides")
-    .update({ display_order: displayOrder })
-    .eq("id", id)
-    .select()
-    .maybeSingle();
-
-  if (error) throw error;
-  return data as Slide | null;
 }
 
 // ==================== QQ&ArelatedA related ====================
@@ -1787,18 +1677,18 @@ export async function uploadVideoFile(file: File): Promise<string> {
   const fileExt = file.name.split(".").pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-  console.log('开始上传视频:', { fileName, fileSize: file.size, fileType: file.type });
+  console.log('Starting video upload:', { fileName, fileSize: file.size, fileType: file.type });
 
   const { data, error: uploadError } = await supabase.storage
     .from(bucketName)
     .upload(fileName, file);
 
   if (uploadError) {
-    console.error('视频上传失败:', uploadError);
-    throw new Error(`视频上传失败: ${uploadError.message}`);
+    console.error('Video upload failed:', uploadError);
+    throw new Error(`Video upload failed: ${uploadError.message}`);
   }
 
-  console.log('视频上传成功:', data);
+  console.log('Video upload successful:', data);
 
   const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(fileName);
   return urlData.publicUrl;
@@ -1821,18 +1711,18 @@ export async function uploadVideoCover(file: File): Promise<string> {
   const fileExt = file.name.split(".").pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
-  console.log('开始上传封面:', { fileName, fileSize: file.size, fileType: file.type });
+  console.log('Starting cover upload:', { fileName, fileSize: file.size, fileType: file.type });
 
   const { data, error: uploadError } = await supabase.storage
     .from(bucketName)
     .upload(fileName, file);
 
   if (uploadError) {
-    console.error('封面上传失败:', uploadError);
-    throw new Error(`封面上传失败: ${uploadError.message}`);
+    console.error('Cover upload failed:', uploadError);
+    throw new Error(`Cover upload failed: ${uploadError.message}`);
   }
 
-  console.log('封面上传成功:', data);
+  console.log('Cover upload successful:', data);
 
   const { data: urlData } = supabase.storage.from(bucketName).getPublicUrl(fileName);
   return urlData.publicUrl;
@@ -3380,6 +3270,15 @@ export async function getDeviceStats(days: number = 7) {
     p_days: days,
   });
 
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+// 获取当前在线访客（最近 N 分钟内活跃）
+export async function getOnlineVisitors(minutes: number = 5) {
+  const { data, error } = await supabase.rpc("get_online_visitors", {
+    p_minutes: minutes,
+  });
   if (error) throw error;
   return Array.isArray(data) ? data : [];
 }
