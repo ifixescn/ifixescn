@@ -1,22 +1,23 @@
 /**
  * Browser-side video compression utility using FFmpeg.wasm (single-thread mode).
- * Loads the WASM core from CDN on first use — no SharedArrayBuffer / COOP headers required.
+ * Both the JS wrapper and the WASM core are loaded from CDN on first use —
+ * no npm bundling of @ffmpeg/* required, avoids Rollup/Vercel build errors.
  *
  * Target: compress video to ≤ TARGET_SIZE_MB while keeping the best possible quality.
  */
 
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+// CDN bases
+const FFMPEG_ESM_CDN = 'https://esm.sh/@ffmpeg';
+const FFMPEG_CORE_CDN = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
 
 const TARGET_SIZE_MB = 50;
 const TARGET_SIZE_BYTES = TARGET_SIZE_MB * 1024 * 1024;
 
-// CDN base for @ffmpeg/core (single-thread build, no SharedArrayBuffer)
-const FFMPEG_CDN = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-
 // Singleton FFmpeg instance — only initialised once per page session
-let ffmpegInstance: FFmpeg | null = null;
-let ffmpegLoading: Promise<FFmpeg> | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let ffmpegInstance: any | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let ffmpegLoading: Promise<any> | null = null;
 
 export interface CompressionProgress {
   phase: 'loading' | 'compressing';
@@ -32,21 +33,27 @@ export interface CompressionResult {
 }
 
 /**
- * Lazily load the FFmpeg WASM binary (≈ 32 MB, cached by the browser after the first load).
+ * Lazily load the FFmpeg WASM binary from CDN (≈ 32 MB, cached by the browser after the first load).
+ * Both the JS wrapper and WASM core are fetched from CDN — no bundler involvement.
  */
-async function getFFmpeg(onProgress?: (p: CompressionProgress) => void): Promise<FFmpeg> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getFFmpeg(onProgress?: (p: CompressionProgress) => void): Promise<any> {
   if (ffmpegInstance) return ffmpegInstance;
 
   if (!ffmpegLoading) {
     ffmpegLoading = (async () => {
       onProgress?.({ phase: 'loading', percent: 0 });
 
+      // Dynamic CDN import — Rollup/Vite will not attempt to bundle this
+      const { FFmpeg } = await import(/* @vite-ignore */ `${FFMPEG_ESM_CDN}/ffmpeg@0.12.10`);
+      const { toBlobURL } = await import(/* @vite-ignore */ `${FFMPEG_ESM_CDN}/util@0.12.1`);
+
       const ff = new FFmpeg();
 
       // Stream core + wasm through blob URLs so the browser can cache them
       const [coreURL, wasmURL] = await Promise.all([
-        toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.js`, 'text/javascript'),
-        toBlobURL(`${FFMPEG_CDN}/ffmpeg-core.wasm`, 'application/wasm'),
+        toBlobURL(`${FFMPEG_CORE_CDN}/ffmpeg-core.js`, 'text/javascript'),
+        toBlobURL(`${FFMPEG_CORE_CDN}/ffmpeg-core.wasm`, 'application/wasm'),
       ]);
 
       onProgress?.({ phase: 'loading', percent: 60 });
@@ -113,13 +120,16 @@ export async function compressVideo(
   const ff = await getFFmpeg(onProgress);
 
   // Wire up FFmpeg's own progress events → 0–100
-  ff.on('progress', ({ progress }) => {
+  ff.on('progress', ({ progress }: { progress: number }) => {
     onProgress?.({ phase: 'compressing', percent: Math.round(Math.min(progress * 100, 99)) });
   });
 
   const ext = (file.name.split('.').pop() ?? 'mp4').toLowerCase();
   const inputName = `input.${ext}`;
   const outputName = 'output.mp4';
+
+  // Dynamically import fetchFile from CDN (same as getFFmpeg approach)
+  const { fetchFile } = await import(/* @vite-ignore */ `${FFMPEG_ESM_CDN}/util@0.12.1`);
 
   // Write source file into the WASM virtual FS
   await ff.writeFile(inputName, await fetchFile(file));

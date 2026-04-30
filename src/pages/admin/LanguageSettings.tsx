@@ -346,13 +346,15 @@ export default function LanguageSettings() {
       return;
     }
     const currentDefault = languages.find((l) => l.is_default);
-    const updates = [];
+    let hasError = false;
     if (currentDefault) {
-      updates.push(supabase.from("language_settings").update({ is_default: false, updated_at: new Date().toISOString() }).eq("id", currentDefault.id));
+      const { error } = await supabase.from("language_settings").update({ is_default: false, updated_at: new Date().toISOString() }).eq("id", currentDefault.id);
+      if (error) hasError = true;
     }
-    updates.push(supabase.from("language_settings").update({ is_default: true, updated_at: new Date().toISOString() }).eq("id", lang.id));
-    const results = await Promise.all(updates);
-    const hasError = results.some((r) => r.error);
+    if (!hasError) {
+      const { error } = await supabase.from("language_settings").update({ is_default: true, updated_at: new Date().toISOString() }).eq("id", lang.id);
+      if (error) hasError = true;
+    }
     if (hasError) {
       toast.error("设置默认语言失败");
     } else {

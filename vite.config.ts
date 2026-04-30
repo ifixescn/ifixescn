@@ -15,6 +15,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // Exclude FFmpeg.wasm packages from Vite pre-bundling — they use dynamic imports internally
+  optimizeDeps: {
+    exclude: ['@ffmpeg/ffmpeg', '@ffmpeg/util'],
+  },
   server: {
     proxy: {
       // 代理微信验证文件请求到Edge Function
